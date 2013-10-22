@@ -4,7 +4,7 @@
 package force
 
 import (
-	"github.com/nimajalali/go-force/force/oauth"
+	"github.com/nimajalali/go-force/oauth"
 )
 
 const (

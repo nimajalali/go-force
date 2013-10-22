@@ -3,7 +3,7 @@ package force
 import (
 	"bytes"
 
-	"github.com/nimajalali/go-force/force/encoding"
+	"github.com/nimajalali/go-force/encoding"
 )
 
 const (
