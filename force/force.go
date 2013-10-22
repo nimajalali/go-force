@@ -3,31 +3,27 @@
 // See http://www.salesforce.com/us/developer/docs/api_rest/
 package force
 
-import (
-	"github.com/nimajalali/go-force/oauth"
-)
-
 const (
-	testApiVersion = ""
+	grantType = "password"
 
+	testVersion       = ""
 	testClientId      = ""
 	testClientSecret  = ""
 	testUserName      = ""
 	testPassword      = ""
 	testSecurityToken = ""
 	testEnvironment   = "sandbox"
-
-	grantType = "password"
 )
 
 // Basic information needed to connect to the Force.com REST API.
-var version string
-var oauth oauth.SFOauth
+var apiVersion string
+var oauth *ForceOauth
 
-func Init(apiVersion, clientId, clientSecret, username, password, securityToken, environment string) error {
-	version = apiVersion
+func Init(version, clientId, clientSecret, username, password, securityToken, environment string) error {
+	apiVersion = version
 
-	oauth, err := oauth.Authenticate(grantType, clientId, clientSecret, username, password, securityToken, environment)
+	var err error
+	oauth, err = authenticate(grantType, clientId, clientSecret, username, password, securityToken, environment)
 	if err != nil {
 		return err
 	}
@@ -37,9 +33,10 @@ func Init(apiVersion, clientId, clientSecret, username, password, securityToken,
 
 // Used when running tests.
 func initTest() error {
-	version = testApiVersion
+	apiVersion = testVersion
 
-	oauth, err := oauth.Authenticate(grantType, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+	var err error
+	oauth, err = authenticate(grantType, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
 	if err != nil {
 		return err
 	}

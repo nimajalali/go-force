@@ -2,8 +2,14 @@ package force
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 
-	"github.com/nimajalali/go-force/encoding"
+	"go-force/force/encoding"
 )
 
 const (
@@ -29,7 +35,7 @@ func Delete(path string, payload url.Values, body, out interface{}) error {
 	return request("DELETE", path, payload, body, out)
 }
 
-func request(method, path string, payload url.Values, body, out interface{}) error {
+func request(method, path string, params url.Values, payload, out interface{}) error {
 	if err := oauth.Validate(); err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
@@ -38,9 +44,25 @@ func request(method, path string, payload url.Values, body, out interface{}) err
 	var uri bytes.Buffer
 	uri.WriteString(oauth.InstanceUrl)
 	uri.WriteString(path)
-	if payload != nil && len(payload) != 0 {
+	if params != nil && len(params) != 0 {
 		uri.WriteString("?")
-		uri.WriteString(payload.Encode())
+		uri.WriteString(params.Encode())
+	}
+
+	// Build body
+	var body io.Reader
+	if payload != nil {
+		encodedPayload, err := encoding.Encode(payload)
+		if err != nil {
+			return fmt.Errorf("Error encoding payload: %v", err)
+		}
+
+		jsonBytes, err := json.Marshal(encodedPayload)
+		if err != nil {
+			return fmt.Errorf("Error marshaling encoded payload: %v", err)
+		}
+
+		body = bytes.NewReader(jsonBytes)
 	}
 
 	// Build Request
@@ -69,11 +91,11 @@ func request(method, path string, payload url.Values, body, out interface{}) err
 		return fmt.Errorf("Error reading response bytes: %v", err)
 	}
 
-	// Attempt to parse response as a salesforce api error
-	apiError := ApiError{}
-	if err := json.Unmarshal(respBytes, &apiError); err == nil {
+	// Attempt to parse response as a force.com api error
+	apiError := &ApiError{}
+	if err := json.Unmarshal(respBytes, apiError); err == nil {
 		// Check if api error is valid
-		if len(apiError.ErrorCode) != 0 {
+		if len(apiError.Fields) != 0 || len(apiError.Message) != 0 || len(apiError.ErrorCode) != 0 || len(apiError.ErrorName) != 0 || len(apiError.ErrorDescription) != 0 {
 			return apiError
 		}
 	}
