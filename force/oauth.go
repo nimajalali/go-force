@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 const (
@@ -16,11 +15,11 @@ const (
 )
 
 type ForceOauth struct {
-	AccessToken string    `json:"access_token"`
-	InstanceUrl string    `json:"instance_url"`
-	Id          string    `json:"id"`
-	IssuedAt    time.Time `json:"issued_at"`
-	Signature   string    `json:"signature"`
+	AccessToken string `json:"access_token"`
+	InstanceUrl string `json:"instance_url"`
+	Id          string `json:"id"`
+	IssuedAt    string `json:"issued_at"`
+	Signature   string `json:"signature"`
 }
 
 func (oauth *ForceOauth) Validate() error {
@@ -56,8 +55,9 @@ func authenticate(GrantType, ClientId, ClientSecret, UserName, Password, Securit
 	}
 
 	// Add Headers
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", responseType)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -84,6 +84,8 @@ func authenticate(GrantType, ClientId, ClientSecret, UserName, Password, Securit
 	if err := json.Unmarshal(respBytes, respObject); err != nil {
 		return nil, fmt.Errorf("Unable to unmarshal authentication response: %v", err)
 	}
+
+	fmt.Println(respObject)
 
 	return respObject, nil
 }

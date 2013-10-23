@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"go-force/force/encoding"
+	"go-force/encoding"
 )
 
 const (
@@ -19,20 +19,20 @@ const (
 	responseType = "application/json"
 )
 
-func Get(path string, payload url.Values, out interface{}) error {
+func get(path string, payload url.Values, out interface{}) error {
 	return request("GET", path, payload, nil, out)
 }
 
-func Post(path string, payload url.Values, body, out interface{}) error {
+func post(path string, payload url.Values, body, out interface{}) error {
 	return request("POST", path, payload, body, out)
 }
 
-func Patch(path string, payload url.Values, body, out interface{}) error {
-	return request("PATCH", path, payload, body, out)
+func patch(path string, payload url.Values, body interface{}) error {
+	return request("PATCH", path, payload, body, nil)
 }
 
-func Delete(path string, payload url.Values, body, out interface{}) error {
-	return request("DELETE", path, payload, body, out)
+func delete(path string, payload url.Values) error {
+	return request("DELETE", path, payload, nil, nil)
 }
 
 func request(method, path string, params url.Values, payload, out interface{}) error {
@@ -75,9 +75,7 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", responseType)
-
-	// Add Auth
-	req.SetBasicAuth("Bearer", oauth.AccessToken)
+	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", oauth.AccessToken))
 
 	// Send
 	resp, err := http.DefaultClient.Do(req)
@@ -92,18 +90,28 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	}
 
 	// Attempt to parse response as a force.com api error
-	apiError := &ApiError{}
-	if err := json.Unmarshal(respBytes, apiError); err == nil {
+	apiErrors := ApiErrors{}
+	err = json.Unmarshal(respBytes, &apiErrors)
+	if err == nil {
 		// Check if api error is valid
-		if len(apiError.Fields) != 0 || len(apiError.Message) != 0 || len(apiError.ErrorCode) != 0 || len(apiError.ErrorName) != 0 || len(apiError.ErrorDescription) != 0 {
-			return apiError
+		if len(apiErrors) != 0 {
+			//TODO: Check for oauth token expired error, try to revalidate
+
+			return apiErrors
 		}
 	}
 
 	// Attempt to parse response into out
 	if out != nil {
-		if err := json.Unmarshal(respBytes, out); err != nil {
-			return fmt.Errorf("Unable to unmarshal response: %v", err)
+		// First parse json to map[string]interface{}
+		respMap := make(map[string]interface{})
+		if err := json.Unmarshal(respBytes, &respMap); err != nil {
+			return fmt.Errorf("Unable to unmarshal response to map[string]interface{}: %v", err)
+		}
+
+		// Go-Force Decode
+		if err := encoding.Decode(out, respMap); err != nil {
+			return fmt.Errorf("Unable to dedode response to object: %v", err)
 		}
 	}
 
