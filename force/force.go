@@ -38,6 +38,10 @@ func Init(version, clientId, clientSecret, username, password, securityToken, en
 	if err != nil {
 		return err
 	}
+	err = getApiSObjects()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -59,6 +63,11 @@ func initTest() {
 		err = getApiResources()
 		if err != nil {
 			fmt.Printf("Unable to retrieve api resources for test: %v", err)
+			os.Exit(1)
+		}
+		err = getApiSObjects()
+		if err != nil {
+			fmt.Printf("Unable to retrieve api sobjects for test: %v", err)
 			os.Exit(1)
 		}
 	}

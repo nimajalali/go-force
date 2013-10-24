@@ -17,3 +17,8 @@ type SObjectAttributes struct {
 	Type string `force:"type,omitempty"`
 	Url  string `force:"url,omitempty"`
 }
+
+// Implementing this here because most object don't have an external id and as such this is not needed.
+func (b *BaseSObject) ExternalIdApiName() string {
+	return ""
+}

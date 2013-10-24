@@ -27,8 +27,8 @@ func post(path string, payload url.Values, body, out interface{}) error {
 	return request("POST", path, payload, body, out)
 }
 
-func patch(path string, payload url.Values, body interface{}) error {
-	return request("PATCH", path, payload, body, nil)
+func patch(path string, payload url.Values, body, out interface{}) error {
+	return request("PATCH", path, payload, body, out)
 }
 
 func delete(path string, payload url.Values) error {
