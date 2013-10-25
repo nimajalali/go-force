@@ -4,6 +4,6 @@ type Lead struct {
 	BaseSObject
 }
 
-func (l *Lead) ApiName() string {
+func (l Lead) ApiName() string {
 	return "Lead"
 }

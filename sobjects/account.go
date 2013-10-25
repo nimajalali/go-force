@@ -9,6 +9,6 @@ type Account struct {
 	BillingStreet     string `force:",omitempty"`
 }
 
-func (a *Account) ApiName() string {
+func (a Account) ApiName() string {
 	return "Account"
 }

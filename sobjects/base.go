@@ -19,6 +19,6 @@ type SObjectAttributes struct {
 }
 
 // Implementing this here because most object don't have an external id and as such this is not needed.
-func (b *BaseSObject) ExternalIdApiName() string {
+func (b BaseSObject) ExternalIdApiName() string {
 	return ""
 }
