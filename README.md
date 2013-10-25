@@ -6,7 +6,7 @@ go-force
 Quick Start
 ============
 
-	go get github.com/nimajalali/go-force/force
+	```go get github.com/nimajalali/go-force/force```
 
 	import github.com/nimajalali/go-force/force
 
@@ -15,6 +15,12 @@ Quick Start
 Documentation
 =======
 
-*[Package Reference](https://www.google.com)
-*[Examples](https://www.google.com)
-*[Force.com API Reference](http://www.salesforce.com/us/developer/docs/api_rest/)
+* [Package Reference](https://www.google.com)
+* [Examples](https://github.com/nimajalali/go-force/blob/master/force/sobjects_test.go)
+* [Force.com API Reference](http://www.salesforce.com/us/developer/docs/api_rest/)
+
+TODO
+=================
+* Write tests for externalId based api calls
+* Implement all standard objects. Pull requests welcome.
+* Examples on creating custom objects. Describe the SObject interface.
