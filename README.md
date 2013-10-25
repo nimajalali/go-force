@@ -6,7 +6,7 @@ go-force
 Quick Start
 ============
 
-	```go get github.com/nimajalali/go-force/force```
+```go get github.com/nimajalali/go-force/force```
 
 	import github.com/nimajalali/go-force/force
 
