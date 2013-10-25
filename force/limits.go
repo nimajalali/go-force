@@ -8,7 +8,7 @@ type Limit struct {
 }
 
 func GetLimits() (limits *Limits, err error) {
-	uri := ApiResources[limitsKey]
+	uri := apiResources[limitsKey]
 
 	limits = &Limits{}
 	err = get(uri, nil, limits)

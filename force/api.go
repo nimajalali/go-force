@@ -17,19 +17,19 @@ const (
 	resourcesUri = "/services/data/%v"
 )
 
-var ApiResources map[string]string
-var ApiSObjects map[string]SObjectMetaData
-var ApiMaxBatchSize int64
+var apiResources map[string]string
+var apiSObjects map[string]sObjectMetaData
+var apiMaxBatchSize int64
 
 func getApiResources() error {
 	uri := fmt.Sprintf(resourcesUri, apiVersion)
 
-	ApiResources = make(map[string]string)
-	return get(uri, nil, &ApiResources)
+	apiResources = make(map[string]string)
+	return get(uri, nil, &apiResources)
 }
 
 func getApiSObjects() error {
-	uri := ApiResources[sObjectsKey]
+	uri := apiResources[sObjectsKey]
 
 	list := &sObjectApiResponse{}
 	err := get(uri, nil, list)
@@ -37,12 +37,12 @@ func getApiSObjects() error {
 		return err
 	}
 
-	ApiMaxBatchSize = list.MaxBatchSize
+	apiMaxBatchSize = list.MaxBatchSize
 
 	// The API doesn't return the list of sobjects in a map. Convert it.
-	ApiSObjects = make(map[string]SObjectMetaData)
+	apiSObjects = make(map[string]sObjectMetaData)
 	for _, object := range list.SObjects {
-		ApiSObjects[object.Name] = object
+		apiSObjects[object.Name] = object
 	}
 
 	return nil
@@ -51,10 +51,10 @@ func getApiSObjects() error {
 type sObjectApiResponse struct {
 	Encoding     string            `json:"encoding"`
 	MaxBatchSize int64             `json:"maxBatchSize"`
-	SObjects     []SObjectMetaData `json:"sobjects"`
+	SObjects     []sObjectMetaData `json:"sobjects"`
 }
 
-type SObjectMetaData struct {
+type sObjectMetaData struct {
 	Name                string            `json:"name"`
 	Label               string            `json:"label"`
 	KeyPrefix           string            `json:"keyPrefix"`
@@ -76,23 +76,4 @@ type SObjectMetaData struct {
 	Retrieveable        bool              `json:"retrieveable"`
 	Undeletable         bool              `json:"undeletable"`
 	Triggerable         bool              `json:"triggerable"`
-}
-
-// Custom Error to handle salesforce api responses.
-type ApiErrors []ApiError
-
-type ApiError struct {
-	Fields           []string `json:"fields,omitempty" force:"fields,omitempty"`
-	Message          string   `json:"message,omitempty" force:"message,omitempty"`
-	ErrorCode        string   `json:"errorCode,omitempty" force:"errorCode,omitempty"`
-	ErrorName        string   `json:"error,omitempty" force:"error,omitempty"`
-	ErrorDescription string   `json:"error_description,omitempty" force:"error_description,omitempty"`
-}
-
-func (e ApiErrors) Error() string {
-	return fmt.Sprintf("%#v", e)
-}
-
-func (e ApiError) Error() string {
-	return fmt.Sprintf("%#v", e)
 }

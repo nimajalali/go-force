@@ -18,7 +18,7 @@ type BaseQuery struct {
 // Use the Query resource to execute a SOQL query that returns all the results in a single response,
 // or if needed, returns part of the results and an identifier used to retrieve the remaining results.
 func Query(query string, out interface{}) (err error) {
-	uri := ApiResources[queryKey]
+	uri := apiResources[queryKey]
 
 	params := url.Values{
 		"q": {query},
@@ -33,7 +33,7 @@ func Query(query string, out interface{}) (err error) {
 // been deleted because of a merge or delete. Use QueryAll rather than Query, because the Query resource
 // will automatically filter out items that have been deleted.
 func QueryAll(query string, out interface{}) (err error) {
-	uri := ApiResources[queryAllKey]
+	uri := apiResources[queryAllKey]
 
 	params := url.Values{
 		"q": {query},

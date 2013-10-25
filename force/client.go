@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"go-force/encoding"
+	"github.com/nimajalali/go-force/encoding"
 )
 
 const (
@@ -93,9 +93,17 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	apiErrors := ApiErrors{}
 	err = json.Unmarshal(respBytes, &apiErrors)
 	if err == nil {
-		// Check if api error is valid
-		if len(apiErrors) != 0 {
-			//TODO: Check for oauth token expired error, try to revalidate
+		if apiErrors.Validate() {
+			// Check if error is oauth token expired
+			if oauth.Expired(apiErrors) {
+				// Reauthenticate then attempt query again
+				oauthErr := oauth.Authenticate()
+				if oauthErr != nil {
+					return oauthErr
+				}
+
+				return request(method, path, params, payload, out)
+			}
 
 			return apiErrors
 		}

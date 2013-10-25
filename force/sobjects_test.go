@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"go-force/sobjects"
+	"github.com/nimajalali/go-force/sobjects"
 )
 
 const (

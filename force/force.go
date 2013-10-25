@@ -9,8 +9,6 @@ import (
 )
 
 const (
-	grantType = "password"
-
 	testVersion       = "v29.0"
 	testClientId      = "3MVG9A2kN3Bn17hs8MIaQx1voVGy662rXlC37svtmLmt6wO_iik8Hnk3DlcYjKRvzVNGWLFlGRH1ryHwS217h"
 	testClientSecret  = "4165772184959202901"
@@ -22,13 +20,22 @@ const (
 
 // Basic information needed to connect to the Force.com REST API.
 var apiVersion string
-var oauth *ForceOauth
+var oauth *forceOauth
 
-func Init(version, clientId, clientSecret, username, password, securityToken, environment string) error {
+func Init(version, clientId, clientSecret, userName, password, securityToken, environment string) error {
 	apiVersion = version
 
-	var err error
-	oauth, err = authenticate(grantType, clientId, clientSecret, username, password, securityToken, environment)
+	oauth = &forceOauth{
+		clientId:      clientId,
+		clientSecret:  clientSecret,
+		userName:      userName,
+		password:      password,
+		securityToken: securityToken,
+		environment:   environment,
+	}
+
+	// Init oauth
+	err := oauth.Authenticate()
 	if err != nil {
 		return err
 	}
@@ -52,8 +59,17 @@ func initTest() {
 	if len(apiVersion) == 0 {
 		apiVersion = testVersion
 
-		var err error
-		oauth, err = authenticate(grantType, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+		oauth = &forceOauth{
+			clientId:      testClientId,
+			clientSecret:  testClientSecret,
+			userName:      testUserName,
+			password:      testPassword,
+			securityToken: testSecurityToken,
+			environment:   testEnvironment,
+		}
+
+		// Init oauth
+		err := oauth.Authenticate()
 		if err != nil {
 			fmt.Printf("Unable to authenticate for test: %v", err)
 			os.Exit(1)
