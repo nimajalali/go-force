@@ -14,14 +14,32 @@ Example
 
 	import (
 		"fmt"
+	
 		"github.com/nimajalali/go-force/force"
+		"github.com/nimajalali/go-force/sobjects"
 	)
+	
+	type SomeCustomSObject struct {
+		sobjects.BaseSObject
+		Active    bool   `force:"Active__c"`
+		AccountId string `force:"Account__c"`
+	}
+	
+	func (t *SomeCustomSObject) ApiName() string {
+		return "SomeCustomObject__c"
+	}
 
 	func main() {
 		// Initialize with your Login information
 		force.Init("YOUR-API-VERSION", "YOUR-CLIENT-ID", "YOUR-CLIENT-SECRET", "YOUR-USERNAME", "YOUR-PASSWORD", "YOUR-SECURITY-TOKEN", "YOUR-ENVIRONMENT")
 
+		someCustomSObject := &SomeCustomSObject{}
+		err := force.GetSObject("Your-Object-ID", someCustomSObject)
+		if err != nil {
+			fmt.Println(err)
+		}
 		
+		fmt.Printf("%#v", someCustomSObject)
 	}
 
 Documentation
