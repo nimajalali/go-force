@@ -22,3 +22,14 @@ type SObjectAttributes struct {
 func (b BaseSObject) ExternalIdApiName() string {
 	return ""
 }
+
+// Fields that are returned in every query response. Use this to build custom structs.
+// type MyCustomQueryResponse struct {
+// 	BaseQuery
+// 	Records []sobjects.Account `json:"records" force:"records"`
+// }
+type BaseQuery struct {
+	Done           bool    `json:"done" force:"done"`
+	TotalSize      float64 `json:"totalSize" force:"totalSize"`
+	NextRecordsUri string  `json:"nextRecordsUrl" force:"nextRecordsUrl"`
+}

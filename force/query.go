@@ -4,17 +4,6 @@ import (
 	"net/url"
 )
 
-// Fields that are returned in every query response. Use this to build custom structs.
-// type MyCustomQueryResponse struct {
-// 	BaseQuery
-// 	Records []sobjects.Account `json:"records" force:"records"`
-// }
-type BaseQuery struct {
-	Done           bool    `json:"done" force:"done"`
-	TotalSize      float64 `json:"totalSize" force:"totalSize"`
-	NextRecordsUri string  `json:"nextRecordsUrl" force:"nextRecordsUrl"`
-}
-
 // Use the Query resource to execute a SOQL query that returns all the results in a single response,
 // or if needed, returns part of the results and an identifier used to retrieve the remaining results.
 func Query(query string, out interface{}) (err error) {

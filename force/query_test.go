@@ -17,7 +17,7 @@ func init() {
 }
 
 type AccountQueryResponse struct {
-	BaseQuery
+	sobjects.BaseQuery
 	Records []sobjects.Account `json:"records" force:"records"`
 }
 
