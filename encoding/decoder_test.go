@@ -377,3 +377,28 @@ func TestDecodeUnexported(t *testing.T) {
 		t.Errorf("got %q, want %q", out, want)
 	}
 }
+
+type Foo struct {
+	FooBar interface{} `force:"foobar"`
+}
+type Bar struct {
+	Baz int `force:"baz"`
+}
+
+func TestDecodeInterfaceValues(t *testing.T) {
+	input := map[string]interface{}{
+		"foobar": map[string]interface{}{
+			"baz": 123,
+		},
+	}
+	want := &Foo{FooBar: &Bar{Baz: 123}}
+
+	out := &Foo{FooBar: &Bar{}}
+	err := Decode(out, input)
+	if err != nil {
+		t.Errorf("got error %v, expected nil", err)
+	}
+	if !reflect.DeepEqual(out, want) {
+		t.Errorf("got %q, want %q", out, want)
+	}
+}
