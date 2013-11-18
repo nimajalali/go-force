@@ -29,7 +29,7 @@ func (b BaseSObject) ExternalIdApiName() string {
 // 	Records []sobjects.Account `json:"records" force:"records"`
 // }
 type BaseQuery struct {
-	Done           bool    `json:"done" force:"done"`
-	TotalSize      float64 `json:"totalSize" force:"totalSize"`
-	NextRecordsUri string  `json:"nextRecordsUrl" force:"nextRecordsUrl"`
+	Done           bool    `json:"Done" force:"done"`
+	TotalSize      float64 `json:"TotalSize" force:"totalSize"`
+	NextRecordsUri string  `json:"NextRecordsUrl" force:"nextRecordsUrl"`
 }
