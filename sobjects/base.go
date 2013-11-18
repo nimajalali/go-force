@@ -2,7 +2,7 @@ package sobjects
 
 // Base struct that contains fields that all objects, standard and custom, include.
 type BaseSObject struct {
-	Attributes       SObjectAttributes `force:"attributes,omitempty"`
+	Attributes       SObjectAttributes `json:"-" force:"attributes,omitempty"`
 	Id               string            `force:",omitempty"`
 	IsDeleted        bool              `force:",omitempty"`
 	Name             string            `force:",omitempty"`
