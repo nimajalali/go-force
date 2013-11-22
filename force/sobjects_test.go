@@ -27,6 +27,17 @@ func init() {
 	initTest()
 }
 
+func TestDescribeSObject(t *testing.T) {
+	acc := &sobjects.Account{}
+
+	desc, err := DescribeSObject(acc)
+	if err != nil {
+		t.Fatalf("Cannot retrieve SObject Description for Account SObject: %v", err)
+	}
+
+	t.Logf("SObject Description for Account Retrieved: %+v", desc)
+}
+
 func TestGetSObject(t *testing.T) {
 	// Test Standard Object
 	acc := &sobjects.Account{}
@@ -36,7 +47,7 @@ func TestGetSObject(t *testing.T) {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
 
-	t.Logf("SObject Account Retrieved: %#v", acc)
+	t.Logf("SObject Account Retrieved: %+v", acc)
 
 	// Test Custom Object
 	customObject := &CustomSObject{}
@@ -46,7 +57,7 @@ func TestGetSObject(t *testing.T) {
 		t.Fatalf("Cannot retrieve SObject CustomObject: %v", err)
 	}
 
-	t.Logf("SObject CustomObject Retrieved: %#v", customObject)
+	t.Logf("SObject CustomObject Retrieved: %+v", customObject)
 }
 
 func TestUpdateSObject(t *testing.T) {
@@ -73,7 +84,7 @@ func TestUpdateSObject(t *testing.T) {
 		t.Fatalf("Update SObject Account failed. Failed to persist.")
 	}
 
-	t.Logf("Updated SObject Account: %#v", acc)
+	t.Logf("Updated SObject Account: %+v", acc)
 }
 
 func TestInsertDeleteSObject(t *testing.T) {
@@ -96,7 +107,7 @@ func insertSObject(t *testing.T) string {
 	}
 
 	if len(resp.Id) == 0 {
-		t.Fatalf("Insert SObject Account failed to return Id: %#v", resp)
+		t.Fatalf("Insert SObject Account failed to return Id: %+v", resp)
 	}
 
 	return resp.Id
@@ -114,7 +125,7 @@ func deleteSObject(t *testing.T, id string) {
 	// Read back and verify
 	err = GetSObject(id, acc)
 	if err == nil {
-		t.Fatalf("Delete SObject Account failed, was able to retrieve deleted object: %#v", acc)
+		t.Fatalf("Delete SObject Account failed, was able to retrieve deleted object: %+v", acc)
 	}
 }
 

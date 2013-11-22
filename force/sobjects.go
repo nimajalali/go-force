@@ -18,9 +18,34 @@ type SObjectResponse struct {
 	Success bool      `force:"success,omitempty"`
 }
 
+func DescribeSObject(in SObject) (resp *SObjectDescription, err error) {
+	// Check cache
+	resp, ok := apiSObjectDescriptions[in.ApiName()]
+	if !ok {
+		// Attemp retrieval from api
+		sObjectMetaData, ok := apiSObjects[in.ApiName()]
+		if !ok {
+			err = fmt.Errorf("Unable to find metadata for object: %v", in.ApiName())
+			return
+		}
+
+		uri := sObjectMetaData.URLs[sObjectDescribeKey]
+
+		resp = &SObjectDescription{}
+		err = get(uri, nil, resp)
+		if err != nil {
+			return
+		}
+
+		apiSObjectDescriptions[in.ApiName()] = resp
+	}
+
+	return
+}
+
 // TODO: Add fields parameter to only retireve needed fields.
 func GetSObject(id string, out SObject) (err error) {
-	uri := strings.Replace(apiSObjects[out.ApiName()].Urls[rowTemplateKey], idKey, id, 1)
+	uri := strings.Replace(apiSObjects[out.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	err = get(uri, nil, out.(interface{}))
 
@@ -28,7 +53,7 @@ func GetSObject(id string, out SObject) (err error) {
 }
 
 func InsertSObject(in SObject) (resp *SObjectResponse, err error) {
-	uri := apiSObjects[in.ApiName()].Urls[sObjectKey]
+	uri := apiSObjects[in.ApiName()].URLs[sObjectKey]
 
 	resp = &SObjectResponse{}
 	err = post(uri, nil, in.(interface{}), resp)
@@ -37,7 +62,7 @@ func InsertSObject(in SObject) (resp *SObjectResponse, err error) {
 }
 
 func UpdateSObject(id string, in SObject) (err error) {
-	uri := strings.Replace(apiSObjects[in.ApiName()].Urls[rowTemplateKey], idKey, id, 1)
+	uri := strings.Replace(apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	err = patch(uri, nil, in.(interface{}), nil)
 
@@ -45,7 +70,7 @@ func UpdateSObject(id string, in SObject) (err error) {
 }
 
 func DeleteSObject(id string, in SObject) (err error) {
-	uri := strings.Replace(apiSObjects[in.ApiName()].Urls[rowTemplateKey], idKey, id, 1)
+	uri := strings.Replace(apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	err = delete(uri, nil)
 
@@ -54,7 +79,7 @@ func DeleteSObject(id string, in SObject) (err error) {
 
 // TODO: Add fields parameter to only retireve needed fields.
 func GetSObjectByExternalId(id string, out SObject) (err error) {
-	uri := fmt.Sprintf("%v/%v/%v", apiSObjects[out.ApiName()].Urls[sObjectKey], out.ExternalIdApiName(), id)
+	uri := fmt.Sprintf("%v/%v/%v", apiSObjects[out.ApiName()].URLs[sObjectKey], out.ExternalIdApiName(), id)
 
 	err = get(uri, nil, out.(interface{}))
 
@@ -62,7 +87,7 @@ func GetSObjectByExternalId(id string, out SObject) (err error) {
 }
 
 func UpsertSObjectByExternalId(id string, in SObject) (resp *SObjectResponse, err error) {
-	uri := fmt.Sprintf("%v/%v/%v", apiSObjects[in.ApiName()].Urls[sObjectKey], in.ExternalIdApiName(), id)
+	uri := fmt.Sprintf("%v/%v/%v", apiSObjects[in.ApiName()].URLs[sObjectKey], in.ExternalIdApiName(), id)
 
 	resp = &SObjectResponse{}
 	err = patch(uri, nil, in.(interface{}), resp)
@@ -71,7 +96,7 @@ func UpsertSObjectByExternalId(id string, in SObject) (resp *SObjectResponse, er
 }
 
 func DeleteSObjectByExternalId(id string, in SObject) (err error) {
-	uri := fmt.Sprintf("%v/%v/%v", apiSObjects[in.ApiName()].Urls[sObjectKey], in.ExternalIdApiName(), id)
+	uri := fmt.Sprintf("%v/%v/%v", apiSObjects[in.ApiName()].URLs[sObjectKey], in.ExternalIdApiName(), id)
 
 	err = delete(uri, nil)
 
