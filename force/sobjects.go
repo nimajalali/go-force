@@ -45,9 +45,12 @@ func DescribeSObject(in SObject) (resp *SObjectDescription, err error) {
 			var allFields bytes.Buffer
 			length--
 			for index, field := range resp.Fields {
-				allFields.WriteString(field.Name)
-				if index < length {
-					allFields.WriteString(", ")
+				// Field type location cannot be directly retrieved from SQL Query.
+				if field.Type != "location" {
+					if index > 0 && index < length {
+						allFields.WriteString(", ")
+					}
+					allFields.WriteString(field.Name)
 				}
 			}
 
