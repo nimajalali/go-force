@@ -88,6 +88,8 @@ type SObjectDescription struct {
 	DeprecatedAndHidden bool                 `json:"deprecatedAndHidden"`
 	RecordTypeInfos     []*RecordTypeInfo    `json:"recordTypeInfos"`
 	ChildRelationsips   []*ChildRelationship `json:"childRelationships"`
+
+	AllFields string `json:"-"` // Not from force.com API. Used to generate SELECT * queries.
 }
 
 type SObjectField struct {

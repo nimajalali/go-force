@@ -1,6 +1,7 @@
 package force
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 )
@@ -22,7 +23,7 @@ func DescribeSObject(in SObject) (resp *SObjectDescription, err error) {
 	// Check cache
 	resp, ok := apiSObjectDescriptions[in.ApiName()]
 	if !ok {
-		// Attemp retrieval from api
+		// Attempt retrieval from api
 		sObjectMetaData, ok := apiSObjects[in.ApiName()]
 		if !ok {
 			err = fmt.Errorf("Unable to find metadata for object: %v", in.ApiName())
@@ -35,6 +36,22 @@ func DescribeSObject(in SObject) (resp *SObjectDescription, err error) {
 		err = get(uri, nil, resp)
 		if err != nil {
 			return
+		}
+
+		// Create Comma Separated String of All Field Names.
+		// Used for SELECT * Queries.
+		length := len(resp.Fields)
+		if length > 0 {
+			var allFields bytes.Buffer
+			length--
+			for index, field := range resp.Fields {
+				allFields.WriteString(field.Name)
+				if index < length {
+					allFields.WriteString(", ")
+				}
+			}
+
+			resp.AllFields = allFields.String()
 		}
 
 		apiSObjectDescriptions[in.ApiName()] = resp
