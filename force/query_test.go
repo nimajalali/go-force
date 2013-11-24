@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	query    = "SELECT %v FROM Account"
 	queryAll = "SELECT %v FROM Account WHERE Id = '%v'"
 )
 
@@ -28,7 +27,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	list := &AccountQueryResponse{}
-	err = Query(fmt.Sprintf(query, desc.AllFields), list)
+	err = Query(fmt.Sprintf(BaseQueryString, desc.AllFields, desc.Name), list)
 	if err != nil {
 		t.Fatalf("Failed to query: %v", err)
 	}

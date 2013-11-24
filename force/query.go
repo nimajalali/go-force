@@ -4,6 +4,10 @@ import (
 	"net/url"
 )
 
+const (
+	BaseQueryString = "SELECT %v FROM %v"
+)
+
 // Use the Query resource to execute a SOQL query that returns all the results in a single response,
 // or if needed, returns part of the results and an identifier used to retrieve the remaining results.
 func Query(query string, out interface{}) (err error) {
