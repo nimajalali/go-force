@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	query    = "SELECT Id, Name FROM Account LIMIT 10"
-	queryAll = "SELECT Id, Name FROM Account WHERE Id = '%v'"
+	query    = "SELECT %v FROM Account"
+	queryAll = "SELECT %v FROM Account WHERE Id = '%v'"
 )
 
 func init() {
@@ -22,8 +22,13 @@ type AccountQueryResponse struct {
 }
 
 func TestQuery(t *testing.T) {
+	desc, err := DescribeSObject(&sobjects.Account{})
+	if err != nil {
+		t.Fatalf("Failed to retrieve description of sobject: %v", err)
+	}
+
 	list := &AccountQueryResponse{}
-	err := Query(query, list)
+	err = Query(fmt.Sprintf(query, desc.AllFields), list)
 	if err != nil {
 		t.Fatalf("Failed to query: %v", err)
 	}
@@ -37,8 +42,13 @@ func TestQueryAll(t *testing.T) {
 	deleteSObject(t, newId)
 
 	// Then look for it.
+	desc, err := DescribeSObject(&sobjects.Account{})
+	if err != nil {
+		t.Fatalf("Failed to retrieve description of sobject: %v", err)
+	}
+
 	list := &AccountQueryResponse{}
-	err := QueryAll(fmt.Sprintf(queryAll, newId), list)
+	err = QueryAll(fmt.Sprintf(queryAll, desc.AllFields, newId), list)
 	if err != nil {
 		t.Fatalf("Failed to queryAll: %v", err)
 	}
