@@ -1,12 +1,23 @@
 package force
 
 import (
+	"fmt"
 	"net/url"
+	"strings"
 )
 
 const (
 	BaseQueryString = "SELECT %v FROM %v"
 )
+
+func BuildQuery(fields, table string, constraints []string) string {
+	query := fmt.Sprintf(BaseQueryString, fields, table)
+	if len(constraints) > 0 {
+		query += fmt.Sprintf(" WHERE %v", strings.Join(constraints, " AND "))
+	}
+
+	return query
+}
 
 // Use the Query resource to execute a SOQL query that returns all the results in a single response,
 // or if needed, returns part of the results and an identifier used to retrieve the remaining results.

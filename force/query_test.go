@@ -27,7 +27,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	list := &AccountQueryResponse{}
-	err = Query(fmt.Sprintf(BaseQueryString, desc.AllFields, desc.Name), list)
+	err = Query(BuildQuery(desc.AllFields, desc.Name, nil), list)
 	if err != nil {
 		t.Fatalf("Failed to query: %v", err)
 	}
