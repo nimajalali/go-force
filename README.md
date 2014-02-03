@@ -32,8 +32,16 @@ Example
 	}
 
 	func main() {
-		// Initialize with your Login information
-		force.Init("YOUR-API-VERSION", "YOUR-CLIENT-ID", "YOUR-CLIENT-SECRET", "YOUR-USERNAME", "YOUR-PASSWORD", "YOUR-SECURITY-TOKEN", "YOUR-ENVIRONMENT")
+		// Init the force
+		force.Init(
+			"YOUR-API-VERSION", 
+			"YOUR-CLIENT-ID", 
+			"YOUR-CLIENT-SECRET", 
+			"YOUR-USERNAME", 
+			"YOUR-PASSWORD", 
+			"YOUR-SECURITY-TOKEN", 
+			"YOUR-ENVIRONMENT",
+		)
 
 		someCustomSObject := &SomeCustomSObject{}
 		err := force.GetSObject("Your-Object-ID", someCustomSObject)
