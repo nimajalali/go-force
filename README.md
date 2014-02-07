@@ -16,6 +16,7 @@ Example
 
 	import (
 		"fmt"
+		"log"
 	
 		"github.com/nimajalali/go-force/force"
 		"github.com/nimajalali/go-force/sobjects"
@@ -33,7 +34,7 @@ Example
 
 	func main() {
 		// Init the force
-		force.Init(
+		err := force.Init(
 			"YOUR-API-VERSION", 
 			"YOUR-CLIENT-ID", 
 			"YOUR-CLIENT-SECRET", 
@@ -42,6 +43,9 @@ Example
 			"YOUR-SECURITY-TOKEN", 
 			"YOUR-ENVIRONMENT",
 		)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		someCustomSObject := &SomeCustomSObject{}
 		err := force.GetSObject("Your-Object-ID", someCustomSObject)
