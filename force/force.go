@@ -14,7 +14,7 @@ const (
 	testClientSecret  = "4165772184959202901"
 	testUserName      = "go-force@jalali.net"
 	testPassword      = "golangrocks2"
-	testSecurityToken = "JcQ8eqU5MawUq4z0vSbGKbqXy"
+	testSecurityToken = "ZvjruzWBRGSlsXY7zTESjFaLM"
 	testEnvironment   = "production"
 )
 
