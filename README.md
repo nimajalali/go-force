@@ -65,4 +65,5 @@ Documentation
 TODO
 =================
 * Write tests for externalId based api calls
+* Write tests for sf apiError
 * Implement all standard objects. Pull requests welcome.

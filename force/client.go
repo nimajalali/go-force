@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -78,13 +79,18 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	}
 	defer resp.Body.Close()
 
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Error reading response bytes: %v", err)
+	}
+
 	// Attempt to parse response into out
 	if out != nil {
-		if err := forcejson.NewDecoder(resp.Body).Decode(out); err != nil {
+		if err := forcejson.Unmarshal(respBytes, out); err != nil {
 
 			// Attempt to parse response as a force.com api error before returning unmarshal err
 			apiErrors := ApiErrors{}
-			if marshalErr := forcejson.NewDecoder(resp.Body).Decode(&apiErrors); marshalErr == nil {
+			if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
 				if apiErrors.Validate() {
 					// Check if error is oauth token expired
 					if oauth.Expired(apiErrors) {
