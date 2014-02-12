@@ -2,18 +2,16 @@ package force
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
-	"github.com/nimajalali/go-force/encoding"
+	"github.com/nimajalali/go-force/forcejson"
 )
 
 const (
-	version      = "0.0.1"
+	version      = "1.0.0"
 	userAgent    = "go-force/" + version
 	contentType  = "application/json"
 	responseType = "application/json"
@@ -52,12 +50,8 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	// Build body
 	var body io.Reader
 	if payload != nil {
-		encodedPayload, err := encoding.Encode(payload)
-		if err != nil {
-			return fmt.Errorf("Error encoding payload: %v", err)
-		}
 
-		jsonBytes, err := json.Marshal(encodedPayload)
+		jsonBytes, err := forcejson.Marshal(payload)
 		if err != nil {
 			return fmt.Errorf("Error marshaling encoded payload: %v", err)
 		}
@@ -84,42 +78,31 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	}
 	defer resp.Body.Close()
 
-	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("Error reading response bytes: %v", err)
-	}
-
-	// Attempt to parse response as a force.com api error
-	apiErrors := ApiErrors{}
-	err = json.Unmarshal(respBytes, &apiErrors)
-	if err == nil {
-		if apiErrors.Validate() {
-			// Check if error is oauth token expired
-			if oauth.Expired(apiErrors) {
-				// Reauthenticate then attempt query again
-				oauthErr := oauth.Authenticate()
-				if oauthErr != nil {
-					return oauthErr
-				}
-
-				return request(method, path, params, payload, out)
-			}
-
-			return apiErrors
-		}
-	}
-
 	// Attempt to parse response into out
 	if out != nil {
-		// First parse json to map[string]interface{}
-		respMap := make(map[string]interface{})
-		if err := json.Unmarshal(respBytes, &respMap); err != nil {
-			return fmt.Errorf("Unable to unmarshal response to map[string]interface{}: %v", err)
-		}
+		if err := forcejson.NewDecoder(resp.Body).Decode(out); err != nil {
 
-		// Go-Force Decode
-		if err := encoding.Decode(out, respMap); err != nil {
-			return fmt.Errorf("Unable to dedode response to object: %v", err)
+			// Attempt to parse response as a force.com api error before returning unmarshal err
+			apiErrors := ApiErrors{}
+			if marshalErr := forcejson.NewDecoder(resp.Body).Decode(&apiErrors); marshalErr == nil {
+				if apiErrors.Validate() {
+					// Check if error is oauth token expired
+					if oauth.Expired(apiErrors) {
+						// Reauthenticate then attempt query again
+						oauthErr := oauth.Authenticate()
+						if oauthErr != nil {
+							return oauthErr
+						}
+
+						return request(method, path, params, payload, out)
+					}
+
+					return apiErrors
+				}
+			}
+
+			// Not a force.com api error. Just an unmarshalling error.
+			return fmt.Errorf("Unable to unmarshal response to object: %v", err)
 		}
 	}
 
