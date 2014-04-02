@@ -5,7 +5,7 @@ import (
 )
 
 // Custom Error to handle salesforce api responses.
-type ApiErrors []ApiError
+type ApiErrors []*ApiError
 
 type ApiError struct {
 	Fields           []string `json:"fields,omitempty" force:"fields,omitempty"`
