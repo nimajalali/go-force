@@ -1,3 +1,4 @@
+// Don't use this! It was an interesting effort but in reality all you need is a ptr to a bool. *bool will solve all your problems. :)
 // Used to represent empty bools. Go types are always instantiated with a default value, for bool the default value is false.
 // This makes it difficult to update an SObject without overwriting any boolean field to false.
 // This package solves the issue by representing a bool as an int and implementing the marshal/unmarshal json interface.
