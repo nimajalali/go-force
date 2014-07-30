@@ -16,7 +16,15 @@ type ApiError struct {
 }
 
 func (e ApiErrors) Error() string {
-	return fmt.Sprintf("%#v", e)
+	return fmt.Sprintf("%#v", e.Errors)
+}
+
+func (e ApiErrors) Errors() []string {
+	eArr := make([]string, len(e))
+	for i, err := range e {
+		eArr[i] = err.Error()
+	}
+	return eArr
 }
 
 func (e ApiErrors) Validate() bool {
