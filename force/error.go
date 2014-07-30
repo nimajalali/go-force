@@ -16,7 +16,7 @@ type ApiError struct {
 }
 
 func (e ApiErrors) Error() string {
-	return fmt.Sprintf("%#v", e.Errors)
+	return fmt.Sprintf("%#v", e.Errors())
 }
 
 func (e ApiErrors) Errors() []string {
