@@ -13,8 +13,8 @@ const (
 	testClientId      = "3MVG9A2kN3Bn17hs8MIaQx1voVGy662rXlC37svtmLmt6wO_iik8Hnk3DlcYjKRvzVNGWLFlGRH1ryHwS217h"
 	testClientSecret  = "4165772184959202901"
 	testUserName      = "go-force@jalali.net"
-	testPassword      = "golangrocks2"
-	testSecurityToken = "ZvjruzWBRGSlsXY7zTESjFaLM"
+	testPassword      = "golangrocks3"
+	testSecurityToken = "kAlicVmti9nWRKRiWG3Zvqtte"
 	testEnvironment   = "production"
 )
 
