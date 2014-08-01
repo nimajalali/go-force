@@ -2,6 +2,7 @@ package force
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Custom Error to handle salesforce api responses.
@@ -16,7 +17,16 @@ type ApiError struct {
 }
 
 func (e ApiErrors) Error() string {
-	return fmt.Sprintf("%#v", e)
+	return e.String()
+}
+
+func (e ApiErrors) String() string {
+	s := make([]string, len(e))
+	for i, err := range e {
+		s[i] = err.String()
+	}
+
+	return strings.Join(s, "\n")
 }
 
 func (e ApiErrors) Validate() bool {
@@ -28,6 +38,10 @@ func (e ApiErrors) Validate() bool {
 }
 
 func (e ApiError) Error() string {
+	return e.String()
+}
+
+func (e ApiError) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
