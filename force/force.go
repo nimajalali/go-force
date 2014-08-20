@@ -18,14 +18,9 @@ const (
 	testEnvironment   = "production"
 )
 
-// Basic information needed to connect to the Force.com REST API.
-var apiVersion string
-var oauth *forceOauth
-
-func Init(version, clientId, clientSecret, userName, password, securityToken, environment string) error {
-	apiVersion = version
-
-	oauth = &forceOauth{
+func Create(version, clientId, clientSecret, userName, password, securityToken,
+	environment string) (*ForceApi, error) {
+	oauth := &forceOauth{
 		clientId:      clientId,
 		clientSecret:  clientSecret,
 		userName:      userName,
@@ -34,57 +29,40 @@ func Init(version, clientId, clientSecret, userName, password, securityToken, en
 		environment:   environment,
 	}
 
+	forceApi := &ForceApi{
+		apiResources:           make(map[string]string),
+		apiSObjects:            make(map[string]*SObjectMetaData),
+		apiSObjectDescriptions: make(map[string]*SObjectDescription),
+		apiVersion:             version,
+		oauth:                  oauth,
+	}
+
 	// Init oauth
-	err := oauth.Authenticate()
+	err := forceApi.oauth.Authenticate()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Init Api Resources
-	err = getApiResources()
+	err = forceApi.getApiResources()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = getApiSObjects()
+	err = forceApi.getApiSObjects()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return forceApi, nil
 }
 
 // Used when running tests.
-func initTest() {
-	// initTest is called multiple times throughout testing, it only needs to be run once.
-	if len(apiVersion) == 0 {
-		apiVersion = testVersion
-
-		oauth = &forceOauth{
-			clientId:      testClientId,
-			clientSecret:  testClientSecret,
-			userName:      testUserName,
-			password:      testPassword,
-			securityToken: testSecurityToken,
-			environment:   testEnvironment,
-		}
-
-		// Init oauth
-		err := oauth.Authenticate()
-		if err != nil {
-			fmt.Printf("Unable to authenticate for test: %v", err)
-			os.Exit(1)
-		}
-
-		// Init Api Resources
-		err = getApiResources()
-		if err != nil {
-			fmt.Printf("Unable to retrieve api resources for test: %v", err)
-			os.Exit(1)
-		}
-		err = getApiSObjects()
-		if err != nil {
-			fmt.Printf("Unable to retrieve api sobjects for test: %v", err)
-			os.Exit(1)
-		}
+func createTest() *ForceApi {
+	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+	if err != nil {
+		fmt.Printf("Unable to create ForceApi for test: %v", err)
+		os.Exit(1)
 	}
+
+	return forceApi
 }

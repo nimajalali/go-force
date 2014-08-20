@@ -4,12 +4,9 @@ import (
 	"testing"
 )
 
-func init() {
-	initTest()
-}
-
 func TestLimits(t *testing.T) {
-	limits, err := GetLimits()
+	forceApi := createTest()
+	limits, err := forceApi.GetLimits()
 	if err != nil {
 		// Developer Accounts, which the testbed uses, do not have access to the limits API. So this will always fail.
 		// t.Fatalf("Failed to get Limits: %v", err)

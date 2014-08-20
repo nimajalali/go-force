@@ -4,13 +4,10 @@ import (
 	"testing"
 )
 
-func init() {
-	initTest()
-}
-
 func TestOauth(t *testing.T) {
+	forceApi := createTest()
 	// Verify oauth object is valid
-	if err := oauth.Validate(); err != nil {
+	if err := forceApi.oauth.Validate(); err != nil {
 		t.Fatalf("Oauth object is invlaid: %#v", err)
 	}
 }
