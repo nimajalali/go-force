@@ -11,23 +11,20 @@ const (
 	queryAll = "SELECT %v FROM Account WHERE Id = '%v'"
 )
 
-func init() {
-	initTest()
-}
-
 type AccountQueryResponse struct {
 	sobjects.BaseQuery
 	Records []sobjects.Account `json:"Records" force:"records"`
 }
 
 func TestQuery(t *testing.T) {
-	desc, err := DescribeSObject(&sobjects.Account{})
+	forceApi := createTest()
+	desc, err := forceApi.DescribeSObject(&sobjects.Account{})
 	if err != nil {
 		t.Fatalf("Failed to retrieve description of sobject: %v", err)
 	}
 
 	list := &AccountQueryResponse{}
-	err = Query(BuildQuery(desc.AllFields, desc.Name, nil), list)
+	err = forceApi.Query(BuildQuery(desc.AllFields, desc.Name, nil), list)
 	if err != nil {
 		t.Fatalf("Failed to query: %v", err)
 	}
@@ -36,18 +33,19 @@ func TestQuery(t *testing.T) {
 }
 
 func TestQueryAll(t *testing.T) {
+	forceApi := createTest()
 	// First Insert and Delete an Account
-	newId := insertSObject(t)
-	deleteSObject(t, newId)
+	newId := insertSObject(forceApi, t)
+	deleteSObject(forceApi, t, newId)
 
 	// Then look for it.
-	desc, err := DescribeSObject(&sobjects.Account{})
+	desc, err := forceApi.DescribeSObject(&sobjects.Account{})
 	if err != nil {
 		t.Fatalf("Failed to retrieve description of sobject: %v", err)
 	}
 
 	list := &AccountQueryResponse{}
-	err = QueryAll(fmt.Sprintf(queryAll, desc.AllFields, newId), list)
+	err = forceApi.QueryAll(fmt.Sprintf(queryAll, desc.AllFields, newId), list)
 	if err != nil {
 		t.Fatalf("Failed to queryAll: %v", err)
 	}

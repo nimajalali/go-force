@@ -23,14 +23,11 @@ func (t *CustomSObject) ApiName() string {
 	return "CustomObject__c"
 }
 
-func init() {
-	initTest()
-}
-
 func TestDescribeSObject(t *testing.T) {
+	forceApi := createTest()
 	acc := &sobjects.Account{}
 
-	desc, err := DescribeSObject(acc)
+	desc, err := forceApi.DescribeSObject(acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Description for Account SObject: %v", err)
 	}
@@ -39,10 +36,11 @@ func TestDescribeSObject(t *testing.T) {
 }
 
 func TestGetSObject(t *testing.T) {
+	forceApi := createTest()
 	// Test Standard Object
 	acc := &sobjects.Account{}
 
-	err := GetSObject(AccountId, acc)
+	err := forceApi.GetSObject(AccountId, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -52,7 +50,7 @@ func TestGetSObject(t *testing.T) {
 	// Test Custom Object
 	customObject := &CustomSObject{}
 
-	err = GetSObject(CustomObjectId, customObject)
+	err = forceApi.GetSObject(CustomObjectId, customObject)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject CustomObject: %v", err)
 	}
@@ -61,6 +59,7 @@ func TestGetSObject(t *testing.T) {
 }
 
 func TestUpdateSObject(t *testing.T) {
+	forceApi := createTest()
 	// Need some random text for updating a field.
 	rand.Seed(time.Now().UTC().UnixNano())
 	someText := randomString(10)
@@ -69,13 +68,13 @@ func TestUpdateSObject(t *testing.T) {
 	acc := &sobjects.Account{}
 	acc.Name = someText
 
-	err := UpdateSObject(AccountId, acc)
+	err := forceApi.UpdateSObject(AccountId, acc)
 	if err != nil {
 		t.Fatalf("Cannot update SObject Account: %v", err)
 	}
 
 	// Read back and verify
-	err = GetSObject(AccountId, acc)
+	err = forceApi.GetSObject(AccountId, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -88,11 +87,12 @@ func TestUpdateSObject(t *testing.T) {
 }
 
 func TestInsertDeleteSObject(t *testing.T) {
-	objectId := insertSObject(t)
-	deleteSObject(t, objectId)
+	forceApi := createTest()
+	objectId := insertSObject(forceApi, t)
+	deleteSObject(forceApi, t, objectId)
 }
 
-func insertSObject(t *testing.T) string {
+func insertSObject(forceApi *ForceApi, t *testing.T) string {
 	// Need some random text for name field.
 	rand.Seed(time.Now().UTC().UnixNano())
 	someText := randomString(10)
@@ -101,7 +101,7 @@ func insertSObject(t *testing.T) string {
 	acc := &sobjects.Account{}
 	acc.Name = someText
 
-	resp, err := InsertSObject(acc)
+	resp, err := forceApi.InsertSObject(acc)
 	if err != nil {
 		t.Fatalf("Insert SObject Account failed: %v", err)
 	}
@@ -113,17 +113,17 @@ func insertSObject(t *testing.T) string {
 	return resp.Id
 }
 
-func deleteSObject(t *testing.T, id string) {
+func deleteSObject(forceApi *ForceApi, t *testing.T, id string) {
 	// Test Standard Object
 	acc := &sobjects.Account{}
 
-	err := DeleteSObject(id, acc)
+	err := forceApi.DeleteSObject(id, acc)
 	if err != nil {
 		t.Fatalf("Delete SObject Account failed: %v", err)
 	}
 
 	// Read back and verify
-	err = GetSObject(id, acc)
+	err = forceApi.GetSObject(id, acc)
 	if err == nil {
 		t.Fatalf("Delete SObject Account failed, was able to retrieve deleted object: %+v", acc)
 	}
