@@ -18,30 +18,30 @@ const (
 	responseType = "application/json"
 )
 
-func get(path string, payload url.Values, out interface{}) error {
-	return request("GET", path, payload, nil, out)
+func (forceApi *ForceApi) get(path string, payload url.Values, out interface{}) error {
+	return forceApi.request("GET", path, payload, nil, out)
 }
 
-func post(path string, payload url.Values, body, out interface{}) error {
-	return request("POST", path, payload, body, out)
+func (forceApi *ForceApi) post(path string, payload url.Values, body, out interface{}) error {
+	return forceApi.request("POST", path, payload, body, out)
 }
 
-func patch(path string, payload url.Values, body, out interface{}) error {
-	return request("PATCH", path, payload, body, out)
+func (forceApi *ForceApi) patch(path string, payload url.Values, body, out interface{}) error {
+	return forceApi.request("PATCH", path, payload, body, out)
 }
 
-func delete(path string, payload url.Values) error {
-	return request("DELETE", path, payload, nil, nil)
+func (forceApi *ForceApi) delete(path string, payload url.Values) error {
+	return forceApi.request("DELETE", path, payload, nil, nil)
 }
 
-func request(method, path string, params url.Values, payload, out interface{}) error {
-	if err := oauth.Validate(); err != nil {
+func (forceApi *ForceApi) request(method, path string, params url.Values, payload, out interface{}) error {
+	if err := forceApi.oauth.Validate(); err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
 
 	// Build Uri
 	var uri bytes.Buffer
-	uri.WriteString(oauth.InstanceUrl)
+	uri.WriteString(forceApi.oauth.InstanceUrl)
 	uri.WriteString(path)
 	if params != nil && len(params) != 0 {
 		uri.WriteString("?")
@@ -70,7 +70,7 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", responseType)
-	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", oauth.AccessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceApi.oauth.AccessToken))
 
 	// Send
 	resp, err := http.DefaultClient.Do(req)
@@ -98,14 +98,14 @@ func request(method, path string, params url.Values, payload, out interface{}) e
 	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
 		if apiErrors.Validate() {
 			// Check if error is oauth token expired
-			if oauth.Expired(apiErrors) {
+			if forceApi.oauth.Expired(apiErrors) {
 				// Reauthenticate then attempt query again
-				oauthErr := oauth.Authenticate()
+				oauthErr := forceApi.oauth.Authenticate()
 				if oauthErr != nil {
 					return oauthErr
 				}
 
-				return request(method, path, params, payload, out)
+				return forceApi.request(method, path, params, payload, out)
 			}
 
 			return apiErrors

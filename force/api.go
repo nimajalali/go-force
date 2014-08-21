@@ -18,15 +18,13 @@ const (
 	resourcesUri = "/services/data/%v"
 )
 
-var apiResources map[string]string
-var apiSObjects map[string]*SObjectMetaData
-var apiSObjectDescriptions map[string]*SObjectDescription
-var apiMaxBatchSize int64
-
-func init() {
-	apiResources = make(map[string]string)
-	apiSObjects = make(map[string]*SObjectMetaData)
-	apiSObjectDescriptions = make(map[string]*SObjectDescription)
+type ForceApi struct {
+	apiVersion             string
+	oauth                  *forceOauth
+	apiResources           map[string]string
+	apiSObjects            map[string]*SObjectMetaData
+	apiSObjectDescriptions map[string]*SObjectDescription
+	apiMaxBatchSize        int64
 }
 
 type SObjectApiResponse struct {
@@ -163,42 +161,42 @@ type ChildRelationship struct {
 	RelationshipName    string `json:"relationshipName"`
 }
 
-func getApiResources() error {
-	uri := fmt.Sprintf(resourcesUri, apiVersion)
+func (forceApi *ForceApi) getApiResources() error {
+	uri := fmt.Sprintf(resourcesUri, forceApi.apiVersion)
 
-	return get(uri, nil, &apiResources)
+	return forceApi.get(uri, nil, &forceApi.apiResources)
 }
 
-func getApiSObjects() error {
-	uri := apiResources[sObjectsKey]
+func (forceApi *ForceApi) getApiSObjects() error {
+	uri := forceApi.apiResources[sObjectsKey]
 
 	list := &SObjectApiResponse{}
-	err := get(uri, nil, list)
+	err := forceApi.get(uri, nil, list)
 	if err != nil {
 		return err
 	}
 
-	apiMaxBatchSize = list.MaxBatchSize
+	forceApi.apiMaxBatchSize = list.MaxBatchSize
 
 	// The API doesn't return the list of sobjects in a map. Convert it.
 	for _, object := range list.SObjects {
-		apiSObjects[object.Name] = object
+		forceApi.apiSObjects[object.Name] = object
 	}
 
 	return nil
 }
 
-func getApiSObjectDescriptions() error {
-	for name, metaData := range apiSObjects {
+func (forceApi *ForceApi) getApiSObjectDescriptions() error {
+	for name, metaData := range forceApi.apiSObjects {
 		uri := metaData.URLs[sObjectDescribeKey]
 
 		desc := &SObjectDescription{}
-		err := get(uri, nil, desc)
+		err := forceApi.get(uri, nil, desc)
 		if err != nil {
 			return err
 		}
 
-		apiSObjectDescriptions[name] = desc
+		forceApi.apiSObjectDescriptions[name] = desc
 	}
 
 	return nil
