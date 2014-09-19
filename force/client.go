@@ -73,16 +73,19 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceApi.oauth.AccessToken))
 
 	// Send
+	forceApi.traceRequest(req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}
 	defer resp.Body.Close()
+	forceApi.traceResponse(resp)
 
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("Error reading response bytes: %v", err)
 	}
+	forceApi.traceResponseBody(respBytes)
 
 	// Attempt to parse response into out
 	var objectUnmarshalErr error
@@ -119,4 +122,22 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 
 	// Sometimes no response is expected. For example delete and update. We still have to make sure an error wasn't returned.
 	return nil
+}
+
+func (forceApi *ForceApi) traceRequest(req *http.Request) {
+	if forceApi.logger != nil {
+		forceApi.trace("Request:", req, "%v")
+	}
+}
+
+func (forceApi *ForceApi) traceResponse(resp *http.Response) {
+	if forceApi.logger != nil {
+		forceApi.trace("Response:", resp, "%v")
+	}
+}
+
+func (forceApi *ForceApi) traceResponseBody(body []byte) {
+	if forceApi.logger != nil {
+		forceApi.trace("Response Body:", string(body), "%s")
+	}
 }
