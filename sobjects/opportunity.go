@@ -14,6 +14,7 @@ type Opportunity struct {
 	IsWon           bool    `force:",omitempty"`
 	Name            string  `force:",omitempty"`
 	OwnerId         string  `force:",omitempty"`
+	StageName       string  `force:",omitempty"`
 }
 
 func (t *Opportunity) ApiName() string {
