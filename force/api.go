@@ -25,6 +25,8 @@ type ForceApi struct {
 	apiSObjects            map[string]*SObjectMetaData
 	apiSObjectDescriptions map[string]*SObjectDescription
 	apiMaxBatchSize        int64
+	logger                 ForceApiLogger
+	logPrefix              string
 }
 
 type SObjectApiResponse struct {

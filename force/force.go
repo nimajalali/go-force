@@ -66,3 +66,39 @@ func createTest() *ForceApi {
 
 	return forceApi
 }
+
+type ForceApiLogger interface {
+	Printf(format string, v ...interface{})
+}
+
+// TraceOn turns on logging for this ForceApi. After this is called, all
+// requests, responses, and raw response bodies will be sent to the logger.
+// If prefix is a non-empty string, it will be written to the front of all
+// logged strings, which can aid in filtering log lines.
+//
+// Use TraceOn if you want to spy on the ForceApi requests and responses.
+//
+// Note that the base log.Logger type satisfies ForceApiLogger, but adapters
+// can easily be written for other logging packages (e.g., the
+// golang-sanctioned glog framework).
+func (forceApi *ForceApi) TraceOn(prefix string, logger ForceApiLogger) {
+	forceApi.logger = logger
+	if prefix == "" {
+		forceApi.logPrefix = prefix
+	} else {
+		forceApi.logPrefix = fmt.Sprintf("%s ", prefix)
+	}
+}
+
+// TraceOff turns off tracing. It is idempotent.
+func (forceApi *ForceApi) TraceOff() {
+	forceApi.logger = nil
+	forceApi.logPrefix = ""
+}
+
+func (forceApi *ForceApi) trace(name string, value interface{}, format string) {
+	if forceApi.logger != nil {
+		logMsg := "%s%s " + format + "\n"
+		forceApi.logger.Printf(logMsg, forceApi.logPrefix, name, value)
+	}
+}
