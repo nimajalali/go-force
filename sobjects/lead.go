@@ -8,6 +8,7 @@ type Lead struct {
 	IsConverted   bool   `force:",omitempty"`
 	IsDeleted     bool   `force:",omitempty"`
 	LastName      string `force:",omitempty"`
+	OwnerId       string `force:",omitempty"`
 	Status        string `force:",omitempty"`
 }
 
