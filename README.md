@@ -34,13 +34,13 @@ Example
 
 	func main() {
 		// Init the force
-		err := force.Init(
-			"YOUR-API-VERSION", 
-			"YOUR-CLIENT-ID", 
-			"YOUR-CLIENT-SECRET", 
-			"YOUR-USERNAME", 
-			"YOUR-PASSWORD", 
-			"YOUR-SECURITY-TOKEN", 
+		forceApi, err := force.Create(
+			"YOUR-API-VERSION",
+			"YOUR-CLIENT-ID",
+			"YOUR-CLIENT-SECRET",
+			"YOUR-USERNAME",
+			"YOUR-PASSWORD",
+			"YOUR-SECURITY-TOKEN",
 			"YOUR-ENVIRONMENT",
 		)
 		if err != nil {
@@ -48,7 +48,7 @@ Example
 		}
 
 		someCustomSObject := &SomeCustomSObject{}
-		err := force.GetSObject("Your-Object-ID", someCustomSObject)
+		err = force.GetSObject("Your-Object-ID", someCustomSObject)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -61,9 +61,3 @@ Documentation
 
 * [Package Reference](http://godoc.org/github.com/nimajalali/go-force/force)
 * [Force.com API Reference](http://www.salesforce.com/us/developer/docs/api_rest/)
-
-TODO
-=================
-* Write tests for externalId based api calls
-* Write tests for sf apiError
-* Implement all standard objects. Pull requests welcome.
