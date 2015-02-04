@@ -48,7 +48,7 @@ Example
 		}
 
 		someCustomSObject := &SomeCustomSObject{}
-		err = force.GetSObject("Your-Object-ID", someCustomSObject)
+		err = forceApi.GetSObject("Your-Object-ID", someCustomSObject)
 		if err != nil {
 			fmt.Println(err)
 		}
