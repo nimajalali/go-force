@@ -11,7 +11,7 @@ func (forceApi *ForceApi) GetLimits() (limits *Limits, err error) {
 	uri := forceApi.apiResources[limitsKey]
 
 	limits = &Limits{}
-	err = forceApi.get(uri, nil, limits)
+	err = forceApi.Get(uri, nil, limits)
 
 	return
 }
