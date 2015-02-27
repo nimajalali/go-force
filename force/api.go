@@ -166,14 +166,14 @@ type ChildRelationship struct {
 func (forceApi *ForceApi) getApiResources() error {
 	uri := fmt.Sprintf(resourcesUri, forceApi.apiVersion)
 
-	return forceApi.get(uri, nil, &forceApi.apiResources)
+	return forceApi.Get(uri, nil, &forceApi.apiResources)
 }
 
 func (forceApi *ForceApi) getApiSObjects() error {
 	uri := forceApi.apiResources[sObjectsKey]
 
 	list := &SObjectApiResponse{}
-	err := forceApi.get(uri, nil, list)
+	err := forceApi.Get(uri, nil, list)
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func (forceApi *ForceApi) getApiSObjectDescriptions() error {
 		uri := metaData.URLs[sObjectDescribeKey]
 
 		desc := &SObjectDescription{}
-		err := forceApi.get(uri, nil, desc)
+		err := forceApi.Get(uri, nil, desc)
 		if err != nil {
 			return err
 		}

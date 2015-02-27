@@ -18,20 +18,33 @@ const (
 	responseType = "application/json"
 )
 
-func (forceApi *ForceApi) get(path string, payload url.Values, out interface{}) error {
-	return forceApi.request("GET", path, payload, nil, out)
+// Get issues a GET to the specified path with the given params and put the
+// umarshalled (json) result in the third parameter
+func (forceApi *ForceApi) Get(path string, params url.Values, out interface{}) error {
+	return forceApi.request("GET", path, params, nil, out)
 }
 
-func (forceApi *ForceApi) post(path string, payload url.Values, body, out interface{}) error {
-	return forceApi.request("POST", path, payload, body, out)
+// Post issues a POST to the specified path with the given params and payload
+// and put the unmarshalled (json) result in the third parameter
+func (forceApi *ForceApi) Post(path string, params url.Values, payload, out interface{}) error {
+	return forceApi.request("POST", path, params, payload, out)
 }
 
-func (forceApi *ForceApi) patch(path string, payload url.Values, body, out interface{}) error {
-	return forceApi.request("PATCH", path, payload, body, out)
+// Put issues a PUT to the specified path with the given params and payload
+// and put the unmarshalled (json) result in the third parameter
+func (forceApi *ForceApi) Put(path string, params url.Values, payload, out interface{}) error {
+	return forceApi.request("PUT", path, params, payload, out)
 }
 
-func (forceApi *ForceApi) delete(path string, payload url.Values) error {
-	return forceApi.request("DELETE", path, payload, nil, nil)
+// Patch issues a PATCH to the specified path with the given params and payload
+// and put the unmarshalled (json) result in the third parameter
+func (forceApi *ForceApi) Patch(path string, params url.Values, payload, out interface{}) error {
+	return forceApi.request("PATCH", path, params, payload, out)
+}
+
+// Delete issues a DELETE to the specified path with the given payload
+func (forceApi *ForceApi) Delete(path string, params url.Values) error {
+	return forceApi.request("DELETE", path, params, nil, nil)
 }
 
 func (forceApi *ForceApi) request(method, path string, params url.Values, payload, out interface{}) error {
