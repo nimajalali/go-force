@@ -24,6 +24,7 @@ import (
 
 type SomeCustomSObject struct {
 	sobjects.BaseSObject
+	
 	Active    bool   `force:"Active__c"`
 	AccountId string `force:"Account__c"`
 }
