@@ -71,6 +71,11 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 		oauth:                  oauth,
 	}
 
+	// We need to check for oath correctness here, since we are not generating the token ourselves.
+	if err := forceApi.oauth.Validate(); err != nil {
+		return nil, err
+	}
+
 	// Init Api Resources
 	err := forceApi.getApiResources()
 	if err != nil {
