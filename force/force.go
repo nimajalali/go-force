@@ -58,8 +58,8 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 
 func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
 	oauth := &forceOauth{
-		clientId:      clientId,
-		AccessToken:  accessToken,
+		clientId:    clientId,
+		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
 	}
 
@@ -70,12 +70,6 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 		apiVersion:             version,
 		oauth:                  oauth,
 	}
-
-	// Init oauth
-	//err := forceApi.oauth.Authenticate()
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	// Init Api Resources
 	err := forceApi.getApiResources()
