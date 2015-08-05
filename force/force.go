@@ -56,6 +56,39 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 	return forceApi, nil
 }
 
+func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+	oauth := &forceOauth{
+		clientId:    clientId,
+		AccessToken: accessToken,
+		InstanceUrl: instanceUrl,
+	}
+
+	forceApi := &ForceApi{
+		apiResources:           make(map[string]string),
+		apiSObjects:            make(map[string]*SObjectMetaData),
+		apiSObjectDescriptions: make(map[string]*SObjectDescription),
+		apiVersion:             version,
+		oauth:                  oauth,
+	}
+
+	// We need to check for oath correctness here, since we are not generating the token ourselves.
+	if err := forceApi.oauth.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Init Api Resources
+	err := forceApi.getApiResources()
+	if err != nil {
+		return nil, err
+	}
+	err = forceApi.getApiSObjects()
+	if err != nil {
+		return nil, err
+	}
+
+	return forceApi, nil
+}
+
 // Used when running tests.
 func createTest() *ForceApi {
 	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
