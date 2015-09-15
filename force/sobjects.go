@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"net/url"
 )
 
 // Interface all standard and custom objects must implement. Needed for uri generation.
@@ -62,11 +63,15 @@ func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription,
 	return
 }
 
-// TODO: Add fields parameter to only retireve needed fields.
-func (forceApi *ForceApi) GetSObject(id string, out SObject) (err error) {
+func (forceApi *ForceApi) GetSObject(id string, fields []string, out SObject) (err error) {
 	uri := strings.Replace(forceApi.apiSObjects[out.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
-	err = forceApi.Get(uri, nil, out.(interface{}))
+	params := url.Values{}
+	if len(fields) > 0 {
+		params.Add("fields", strings.Join(fields, ","))
+	}
+
+	err = forceApi.Get(uri, params, out.(interface{}))
 
 	return
 }
@@ -96,12 +101,16 @@ func (forceApi *ForceApi) DeleteSObject(id string, in SObject) (err error) {
 	return
 }
 
-// TODO: Add fields parameter to only retireve needed fields.
-func (forceApi *ForceApi) GetSObjectByExternalId(id string, out SObject) (err error) {
+func (forceApi *ForceApi) GetSObjectByExternalId(id string, fields []string, out SObject) (err error) {
 	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[out.ApiName()].URLs[sObjectKey],
 		out.ExternalIdApiName(), id)
 
-	err = forceApi.Get(uri, nil, out.(interface{}))
+	params := url.Values{}
+	if len(fields) > 0 {
+		params.Add("fields", strings.Join(fields, ","))
+	}
+
+	err = forceApi.Get(uri, params, out.(interface{}))
 
 	return
 }
