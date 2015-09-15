@@ -19,6 +19,7 @@ type CustomSObject struct {
 	AccountId string `force:"Account__c"`
 }
 
+
 func (t *CustomSObject) ApiName() string {
 	return "CustomObject__c"
 }
@@ -40,7 +41,7 @@ func TestGetSObject(t *testing.T) {
 	// Test Standard Object
 	acc := &sobjects.Account{}
 
-	err := forceApi.GetSObject(AccountId, acc)
+	err := forceApi.GetSObject(AccountId, nil, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -50,12 +51,24 @@ func TestGetSObject(t *testing.T) {
 	// Test Custom Object
 	customObject := &CustomSObject{}
 
-	err = forceApi.GetSObject(CustomObjectId, customObject)
+	err = forceApi.GetSObject(CustomObjectId, nil, customObject)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject CustomObject: %v", err)
 	}
 
 	t.Logf("SObject CustomObject Retrieved: %+v", customObject)
+
+	// Test Custom Object Field Retrieval
+	fields := []string{"Name", "Id"}
+
+	accFields := &sobjects.Account{}
+
+	err = forceApi.GetSObject(AccountId, fields, accFields)
+	if err != nil {
+		t.Fatalf("Cannot retrieve SObject Account fields: %v", err)
+	}
+
+	t.Logf("SObject Account Name and Id Retrieved: %+v", accFields)
 }
 
 func TestUpdateSObject(t *testing.T) {
@@ -74,7 +87,7 @@ func TestUpdateSObject(t *testing.T) {
 	}
 
 	// Read back and verify
-	err = forceApi.GetSObject(AccountId, acc)
+	err = forceApi.GetSObject(AccountId, nil, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -123,7 +136,7 @@ func deleteSObject(forceApi *ForceApi, t *testing.T, id string) {
 	}
 
 	// Read back and verify
-	err = forceApi.GetSObject(id, acc)
+	err = forceApi.GetSObject(id, nil, acc)
 	if err == nil {
 		t.Fatalf("Delete SObject Account failed, was able to retrieve deleted object: %+v", acc)
 	}

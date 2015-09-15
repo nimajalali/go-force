@@ -56,7 +56,7 @@ func main() {
 
 	// Get somCustomSObject by ID
 	someCustomSObject := &SomeCustomSObject{}
-	err = forceApi.GetSObject("Your-Object-ID", someCustomSObject)
+	err = forceApi.GetSObject("Your-Object-ID", nil, someCustomSObject)
 	if err != nil {
 		fmt.Println(err)
 	}
