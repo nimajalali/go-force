@@ -6,6 +6,7 @@ package force
 import (
 	"fmt"
 	"os"
+	"net/http"
 )
 
 const (
@@ -19,7 +20,8 @@ const (
 )
 
 func Create(version, clientId, clientSecret, userName, password, securityToken,
-	environment string) (*ForceApi, error) {
+	environment string, client *http.Client) (*ForceApi, error) {
+
 	oauth := &forceOauth{
 		clientId:      clientId,
 		clientSecret:  clientSecret,
@@ -27,6 +29,12 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 		password:      password,
 		securityToken: securityToken,
 		environment:   environment,
+	}
+
+	if client == nil {
+		oauth.client = http.DefaultClient
+	} else {
+		oauth.client = client
 	}
 
 	forceApi := &ForceApi{
@@ -56,11 +64,18 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 	return forceApi, nil
 }
 
-func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string, client *http.Client) (*ForceApi, error) {
+
 	oauth := &forceOauth{
 		clientId:    clientId,
 		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
+	}
+
+	if client == nil {
+		oauth.client = http.DefaultClient
+	} else {
+		oauth.client = client
 	}
 
 	forceApi := &ForceApi{
@@ -91,7 +106,7 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 
 // Used when running tests.
 func createTest() *ForceApi {
-	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, nil)
 	if err != nil {
 		fmt.Printf("Unable to create ForceApi for test: %v", err)
 		os.Exit(1)
