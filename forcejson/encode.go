@@ -285,6 +285,13 @@ var byteSliceType = reflect.TypeOf([]byte(nil))
 
 func isEmptyValue(v reflect.Value) bool {
 	switch v.Kind() {
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			if !isEmptyValue(v.Field(i)) {
+				return false
+			}
+		}
+		return true
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return v.Len() == 0
 	case reflect.Bool:
