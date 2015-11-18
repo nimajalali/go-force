@@ -47,6 +47,12 @@ func (forceApi *ForceApi) Delete(path string, params url.Values) error {
 	return forceApi.request("DELETE", path, params, nil, nil)
 }
 
+// Make a request with the specified method to the specified path with the given params and payload
+func (forceApi *ForceApi) Do(method, path string, params url.Values, payload, out interface{}) error {
+	return forceApi.request(method, path, params, payload, out)
+}
+
+
 func (forceApi *ForceApi) request(method, path string, params url.Values, payload, out interface{}) error {
 	if err := forceApi.oauth.Validate(); err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)

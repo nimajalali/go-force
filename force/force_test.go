@@ -16,7 +16,6 @@ func TestCreateWithAccessToken(t *testing.T) {
 		password:      testPassword,
 		securityToken: testSecurityToken,
 		environment:   testEnvironment,
-		client:        http.DefaultClient,
 	}
 
 	forceApi := &ForceApi{
@@ -27,6 +26,8 @@ func TestCreateWithAccessToken(t *testing.T) {
 		oauth:                  oauth,
 	}
 
+	forceApi.SetClient(http.DefaultClient)
+
 	err := forceApi.oauth.Authenticate()
 	if err != nil {
 		t.Fatalf("Unable to authenticate: %#v", err)
@@ -36,7 +37,7 @@ func TestCreateWithAccessToken(t *testing.T) {
 	}
 
 	// We shouldn't hit any errors creating a new force instance and manually passing in these oauth details now.
-	newForceApi, err := CreateWithAccessToken(testVersion, testClientId, forceApi.oauth.AccessToken, forceApi.oauth.InstanceUrl, nil)
+	newForceApi, err := CreateWithAccessToken(testVersion, testClientId, forceApi.oauth.AccessToken, forceApi.oauth.InstanceUrl)
 	if err != nil {
 		t.Fatalf("Unable to create new force api instance using pre-defined oauth details: %#v", err)
 	}

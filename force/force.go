@@ -20,7 +20,7 @@ const (
 )
 
 func Create(version, clientId, clientSecret, userName, password, securityToken,
-	environment string, client *http.Client) (*ForceApi, error) {
+	environment string) (*ForceApi, error) {
 
 	oauth := &forceOauth{
 		clientId:      clientId,
@@ -29,12 +29,7 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 		password:      password,
 		securityToken: securityToken,
 		environment:   environment,
-	}
-
-	if client == nil {
-		oauth.client = http.DefaultClient
-	} else {
-		oauth.client = client
+		client:        http.DefaultClient,
 	}
 
 	forceApi := &ForceApi{
@@ -64,18 +59,13 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 	return forceApi, nil
 }
 
-func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string, client *http.Client) (*ForceApi, error) {
+func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
 
 	oauth := &forceOauth{
 		clientId:    clientId,
 		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
-	}
-
-	if client == nil {
-		oauth.client = http.DefaultClient
-	} else {
-		oauth.client = client
+		client:      http.DefaultClient,
 	}
 
 	forceApi := &ForceApi{
@@ -104,9 +94,26 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string, c
 	return forceApi, nil
 }
 
+// Update the access token
+func (forceApi *ForceApi) UpdateAccessToken(accessToken string) error {
+
+	forceApi.oauth.AccessToken = accessToken
+
+	if err := forceApi.oauth.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Instead of using the default http client, set your own.
+func (forceApi *ForceApi) SetClient(client *http.Client) {
+	forceApi.oauth.client = client
+}
+
 // Used when running tests.
 func createTest() *ForceApi {
-	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, nil)
+	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
 	if err != nil {
 		fmt.Printf("Unable to create ForceApi for test: %v", err)
 		os.Exit(1)
