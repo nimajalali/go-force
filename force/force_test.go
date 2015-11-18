@@ -3,6 +3,7 @@ package force
 import (
 	"github.com/nimajalali/go-force/sobjects"
 	"testing"
+	"net/http"
 )
 
 func TestCreateWithAccessToken(t *testing.T) {
@@ -24,6 +25,8 @@ func TestCreateWithAccessToken(t *testing.T) {
 		apiVersion:             version,
 		oauth:                  oauth,
 	}
+
+	forceApi.SetClient(http.DefaultClient)
 
 	err := forceApi.oauth.Authenticate()
 	if err != nil {

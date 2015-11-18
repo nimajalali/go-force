@@ -49,6 +49,7 @@ func main() {
 		"YOUR-PASSWORD",
 		"YOUR-SECURITY-TOKEN",
 		"YOUR-ENVIRONMENT",
+		nil, // Client
 	)
 	if err != nil {
 		log.Fatal(err)

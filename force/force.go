@@ -6,6 +6,7 @@ package force
 import (
 	"fmt"
 	"os"
+	"net/http"
 )
 
 const (
@@ -20,6 +21,7 @@ const (
 
 func Create(version, clientId, clientSecret, userName, password, securityToken,
 	environment string) (*ForceApi, error) {
+
 	oauth := &forceOauth{
 		clientId:      clientId,
 		clientSecret:  clientSecret,
@@ -27,6 +29,7 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 		password:      password,
 		securityToken: securityToken,
 		environment:   environment,
+		client:        http.DefaultClient,
 	}
 
 	forceApi := &ForceApi{
@@ -57,10 +60,12 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 }
 
 func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+
 	oauth := &forceOauth{
 		clientId:    clientId,
 		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
+		client:      http.DefaultClient,
 	}
 
 	forceApi := &ForceApi{
@@ -87,6 +92,23 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 	}
 
 	return forceApi, nil
+}
+
+// Update the access token
+func (forceApi *ForceApi) UpdateAccessToken(accessToken string) error {
+
+	forceApi.oauth.AccessToken = accessToken
+
+	if err := forceApi.oauth.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Instead of using the default http client, set your own.
+func (forceApi *ForceApi) SetClient(client *http.Client) {
+	forceApi.oauth.client = client
 }
 
 // Used when running tests.
