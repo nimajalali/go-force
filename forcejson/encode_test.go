@@ -25,13 +25,17 @@ type Optionals struct {
 
 	Mr map[string]interface{} `force:"mr"`
 	Mo map[string]interface{} `force:",omitempty"`
+
+	Str struct{} `force:"str"`
+	Sto struct{} `force:",omitempty"`
 }
 
 var optionalsExpected = `{
  "sr": "",
  "omitempty": 0,
  "slr": null,
- "mr": {}
+ "mr": {},
+ "str": {}
 }`
 
 func TestOmitEmpty(t *testing.T) {
