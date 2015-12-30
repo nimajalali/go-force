@@ -11,7 +11,7 @@ Installation
 
 Example
 ============
-```
+```go
 package main
 
 import (
