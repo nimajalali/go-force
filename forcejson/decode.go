@@ -675,6 +675,8 @@ func (d *decodeState) literalStore(item []byte, v reflect.Value, fromQuoted bool
 			} else {
 				d.saveError(&UnmarshalTypeError{"bool", v.Type()})
 			}
+		case reflect.String:
+			v.SetString(fmt.Sprintf("%t", value))
 		case reflect.Bool:
 			v.SetBool(value)
 		case reflect.Interface:
