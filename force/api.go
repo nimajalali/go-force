@@ -203,3 +203,11 @@ func (forceApi *ForceApi) getApiSObjectDescriptions() error {
 
 	return nil
 }
+
+func (forceApi *ForceApi) GetInstanceURL() string {
+	return forceApi.oauth.InstanceUrl
+}
+
+func (forceApi *ForceApi) GetAccessToken() string {
+	return forceApi.oauth.AccessToken
+}
