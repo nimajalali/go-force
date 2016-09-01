@@ -19,9 +19,17 @@ type CustomSObject struct {
 	AccountId string `force:"Account__c"`
 }
 
-
 func (t *CustomSObject) ApiName() string {
 	return "CustomObject__c"
+}
+
+func TestDescribeSobjects(t *testing.T) {
+	forceAPI := createTest()
+	objects, err := forceAPI.DescribeSObjects()
+	if err != nil {
+		t.Fatal("Failed to retrieve SObjects", err)
+	}
+	t.Logf("SObjects for Account Retrieved: %+v", objects)
 }
 
 func TestDescribeSObject(t *testing.T) {
