@@ -26,6 +26,7 @@ type forceOauth struct {
 
 	clientId      string
 	clientSecret  string
+	refreshToken  string
 	userName      string
 	password      string
 	securityToken string

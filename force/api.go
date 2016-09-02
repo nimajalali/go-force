@@ -29,6 +29,13 @@ type ForceApi struct {
 	logPrefix              string
 }
 
+type RefreshTokenResponse struct {
+	ID          string `json:"id"`
+	IssuedAt    string `json:"issued_at"`
+	Signature   string `json:"signature"`
+	AccessToken string `json:"access_token"`
+}
+
 type SObjectApiResponse struct {
 	Encoding     string             `json:"encoding"`
 	MaxBatchSize int64              `json:"maxBatchSize"`
@@ -210,4 +217,22 @@ func (forceApi *ForceApi) GetInstanceURL() string {
 
 func (forceApi *ForceApi) GetAccessToken() string {
 	return forceApi.oauth.AccessToken
+}
+
+func (forceApi *ForceApi) RefreshToken() error {
+	res := &RefreshTokenResponse{}
+	payload := map[string]string{
+		"grant_type":    "refresh_token",
+		"refresh_token": forceApi.oauth.refreshToken,
+		"client_id":     forceApi.oauth.clientId,
+		"client_secret": forceApi.oauth.clientSecret,
+	}
+
+	err := forceApi.Post("/services/oauth2/token", nil, payload, res)
+	if err != nil {
+		return err
+	}
+
+	forceApi.oauth.AccessToken = res.AccessToken
+	return nil
 }
