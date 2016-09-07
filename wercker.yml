@@ -3,9 +3,10 @@ box: darron/go-wercker
 build:
   # The steps that will be executed on build
   steps:
-    # Sets the go workspace and places you package
+    # Sets the go workspace and places your package
     # at the right place in the workspace tree
-    - setup-go-workspace
+    - wercker/setup-go-workspace:
+        package-dir: github.com/jjordan/go-force
 
     # Gets the dependencies
     - script:
