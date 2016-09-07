@@ -72,6 +72,43 @@ func main() {
 
 	fmt.Printf("%#v", someCustomSObjects)
 }
+
+func useSocksProxy() {
+    auth := proxy.Auth{ User: "user", Password: "password" }
+    // create a socks5 dialer
+    dialer, err := proxy.SOCKS5("tcp", PROXY_ADDR, auth, proxy.Direct)
+	if err != nil {
+        errMsg := fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
+        log.Fatal(errMsg)
+	}
+	// setup a http client
+	httpTransport := &http.Transport{}
+	httpClient := &http.Client{Transport: httpTransport}
+	// set our socks5 as the dialer
+	httpTransport.Dial = dialer.Dial
+
+    // use the client on force
+    force.HttpClient = httpClient
+
+    // Init the force
+	forceApi, err := force.Create(
+		"YOUR-API-VERSION",
+		"YOUR-CLIENT-ID",
+		"YOUR-CLIENT-SECRET",
+		"YOUR-USERNAME",
+		"YOUR-PASSWORD",
+		"YOUR-SECURITY-TOKEN",
+		"YOUR-ENVIRONMENT",
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+    // all force API calls now go through socks proxy
+    // ...
+}
+
+
 ```
 Documentation 
 =======
