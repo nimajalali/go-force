@@ -675,6 +675,16 @@ func (d *decodeState) literalStore(item []byte, v reflect.Value, fromQuoted bool
 			} else {
 				d.saveError(&UnmarshalTypeError{"bool", v.Type()})
 			}
+		case reflect.String:
+			if string(item[:]) == "true" || string(item[:]) == "false" {
+				v.SetString(fmt.Sprintf("%t", value))
+			} else {
+				if fromQuoted {
+					d.saveError(fmt.Errorf("force: invalid use of ,string struct tag, trying to unmarshal %q into %v", item, v.Type()))
+				} else {
+					d.saveError(&UnmarshalTypeError{"bool", v.Type()})
+				}
+			}
 		case reflect.Bool:
 			v.SetBool(value)
 		case reflect.Interface:
