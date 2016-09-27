@@ -94,6 +94,7 @@ func CreateWithRefreshToken(version, clientId, refreshToken, instanceUrl string)
 		clientId:    clientId,
 		InstanceUrl: instanceUrl,
 		refreshToken: refreshToken,
+		AccessToken: nil,
 	}
 
 	forceApi := &ForceApi{
