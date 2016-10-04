@@ -113,6 +113,7 @@ type SObjectField struct {
 	Unique                   bool             `json:"unique"`
 	CaseSensitive            bool             `json:"caseSensitive"`
 	Calculated               bool             `json:"calculated"`
+	CalculatedFormula        string           `json:"calculatedFormula"`
 	Scale                    float64          `json:"scale"`
 	Label                    string           `json:"label"`
 	NamePointing             bool             `json:"namePointing"`
