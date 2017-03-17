@@ -40,7 +40,7 @@ type SObjectAttributes struct {
 
 // Implementing this here because most objects don't have an external id and as such this is not needed.
 // Feel free to override this function when embedding the BaseSObject in other structs.
-func (b BaseSObject) ExternalIdApiName() string {
+func (b BaseSObject) ExternalIDAPIName() string {
 	return ""
 }
 
@@ -55,7 +55,7 @@ type BaseQuery struct {
 	NextRecordsUri string  `json:"NextRecordsUrl" force:"nextRecordsUrl"`
 }
 
-// ConvertFieldNames takes in any interface that inplements SObject and a comma seperated list of json field names.
+// ConvertFieldNames takes in any interface that implements SObject and a comma seperated list of json field names.
 // It converts the json field names to the force struct tag stated equivalent.
 func ConvertFieldNames(obj interface{}, jsonFields string) string {
 	if jsonFields != "" {
