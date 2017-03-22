@@ -4,10 +4,6 @@ import (
 	"fmt"
 )
 
-const (
-	jsonType = "JSON"
-)
-
 var (
 	// job states
 	abortJob = jobState{"Aborted"}
@@ -46,7 +42,7 @@ type SJob struct {
 	APIVersion              float64 `json:"apiVersion"`
 	APIActiveProcessingTime int     `json:"apiActiveProcessingTime"`
 	AssignmentRuleID        string  `json:"assignmentRuleId"`
-	baseURI                 string
+	BaseURI                 string
 	bulkAPIVersion          string
 	ConcurrencyMode         string `json:"concurrencyMode"`
 	ContentType             string `json:"contentType"`
@@ -94,45 +90,37 @@ type SBatchResponse struct {
 }
 
 // CreateJob requests a new bulk job.
-func (forceAPI *API) CreateJob(bulkAPIVersion, operation, object, externalIDField string) (*SJob, error) {
-	jobReq := &SJobRequest{
-		Operation:           operation,
-		Object:              object,
-		ContentType:         jsonType,
-		ExternalIDFieldName: externalIDField,
-	}
+func (forceAPI *API) CreateJob(bulkAPIVersion string, req *SJobRequest) (*SJob, error) {
 
 	uri := fmt.Sprintf("/services/async/%s/job", bulkAPIVersion)
 
 	job := &SJob{}
-	err := forceAPI.Post(uri, nil, jobReq, job)
+	err := forceAPI.Post(uri, nil, req, job)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a new job: %s", err)
 	}
 
 	job.bulkAPIVersion = bulkAPIVersion
-	job.baseURI = fmt.Sprintf("%s/%s", uri, job.ID)
+	job.BaseURI = fmt.Sprintf("%s/%s", uri, job.ID)
 	job.forceAPI = forceAPI
 
 	return job, nil
 }
 
-// jobIsOpen checks whether the job is open.
-func (j *SJob) jobIsOpen() error {
-	if j.State != "Open" {
-		return fmt.Errorf("Job '%s' is in '%s' state", j.ID, j.State)
-	}
-	return nil
+// IsOpen checks whether the job is open.
+func (j *SJob) IsOpen() bool {
+	state, _ := j.GetState()
+
+	return state == "Open"
 }
 
 // AddBatch adds a batch to job.
 func (j *SJob) AddBatch(payload interface{}) (*SBatch, error) {
-
-	if err := j.jobIsOpen(); err != nil {
-		return nil, err
+	if !j.IsOpen() {
+		return nil, fmt.Errorf("Job '%s' is in '%s' state", j.ID, j.State)
 	}
 
-	uri := fmt.Sprintf("%s/batch", j.baseURI)
+	uri := fmt.Sprintf("%s/batch", j.BaseURI)
 
 	batch := &SBatch{}
 	err := j.forceAPI.Post(uri, nil, payload, batch)
@@ -146,13 +134,9 @@ func (j *SJob) AddBatch(payload interface{}) (*SBatch, error) {
 // GetState returns the state of a job.
 func (j *SJob) GetState() (string, error) {
 
-	if err := j.jobIsOpen(); err != nil {
-		return "", err
-	}
-
 	job := &SJob{}
 
-	err := j.forceAPI.Get(j.baseURI, nil, job)
+	err := j.forceAPI.Get(j.BaseURI, nil, job)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get job (%s) state: %s", j.ID, err)
 	}
@@ -164,9 +148,11 @@ func (j *SJob) GetState() (string, error) {
 
 // Close closes the job.
 func (j *SJob) Close() error {
-
+	if !j.IsOpen() {
+		return nil
+	}
 	job := &SJob{}
-	err := j.forceAPI.Post(j.baseURI, nil, closeJob, job)
+	err := j.forceAPI.Post(j.BaseURI, nil, closeJob, job)
 	if err != nil {
 		return fmt.Errorf("Failed to close job (%s): %s", j.ID, err)
 	}
@@ -178,10 +164,10 @@ func (j *SJob) Close() error {
 
 // BatchState returns an array containing the state of each record in the batch.
 func (j *SJob) BatchState(id string) ([]SBatchResponse, error) {
-	if err := j.jobIsOpen(); err != nil {
-		return nil, err
+	if !j.IsOpen() {
+		return nil, fmt.Errorf("Job '%s' is in '%s' state", j.ID, j.State)
 	}
-	URI := fmt.Sprintf("%s/batch/%s/result", j.baseURI, id)
+	URI := fmt.Sprintf("%s/batch/%s/result", j.BaseURI, id)
 
 	resp := make([]SBatchResponse, j.NumberRecordsProcessed)
 
@@ -196,7 +182,7 @@ func (j *SJob) BatchState(id string) ([]SBatchResponse, error) {
 // Abort aborts a job.
 func (j *SJob) Abort() error {
 	job := &SJob{}
-	err := j.forceAPI.Post(j.baseURI, nil, abortJob, job)
+	err := j.forceAPI.Post(j.BaseURI, nil, abortJob, job)
 	if err != nil {
 		return fmt.Errorf("Failed to abort job (%s): %s", j.ID, err)
 	}

@@ -14,11 +14,12 @@ import (
 )
 
 const (
-	contentType      = "application/json; charset=UTF-8"
-	gzipEncodingType = "gzip"
-	responseType     = "application/json"
-	version          = "1.0.0"
-	userAgent        = "go-force/" + version
+	jsonContentType    = "application/json; charset=UTF-8"
+	zipJSONContentType = "zip/json"
+	gzipEncodingType   = "gzip"
+	responseType       = "application/json"
+	version            = "1.0.0"
+	userAgent          = "go-force/" + version
 )
 
 // Get issues a GET to the specified path with the given params and put the
@@ -50,6 +51,22 @@ func (forceAPI *API) Delete(path string, params url.Values) error {
 	return forceAPI.request("DELETE", path, params, nil, nil)
 }
 
+func gzipDecode(body io.Reader) ([]byte, error) {
+	zr, err := gzip.NewReader(body)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot decode gzip response: %s", err)
+	}
+	buf, err := ioutil.ReadAll(zr)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot read decoded gzip response: %s", err)
+	}
+	err = zr.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Cannot close gzip reader: %s", err)
+	}
+	return buf, nil
+}
+
 func (forceAPI *API) request(method, path string, params url.Values, payload, out interface{}) error {
 	if err := forceAPI.oauth.Validate(); err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
@@ -70,15 +87,13 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 
 		switch payload.(type) {
 		case string:
-			fmt.Println("SSSSSSSSSSSSSSSSSSSSSSSSSSSTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT: ", payload.(string))
 			body = bytes.NewReader([]byte(payload.(string)))
 		default:
 			jsonBytes, err := forcejson.Marshal(payload)
-			//jsonBytes, err := json.Marshal(payload)
 			if err != nil {
 				return fmt.Errorf("Error marshalling encoded payload: %v", err)
 			}
-			fmt.Println("----------------SSSSSSSSSSSSSSSSSSSSSSSSSSSTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT: ", string(jsonBytes))
+			fmt.Println("----------------REQUEST BODY: ", string(jsonBytes))
 			body = bytes.NewReader(jsonBytes)
 		}
 	}
@@ -91,14 +106,14 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 
 	// Add Headers
 	req.Header.Set("User-Agent", userAgent)
-	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Content-Type", jsonContentType)
 	req.Header.Set("Accept", responseType)
 	req.Header.Set("Accept-Encoding", gzipEncodingType)
 	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceAPI.oauth.AccessToken))
 	req.Header.Set("X-SFDC-Session", forceAPI.oauth.AccessToken)
 
 	// Send
-	fmt.Printf("-------RRRRRRRRRRRR: %+v\n", req)
+	fmt.Printf("-------REQUEST:::::::::::: %+v\n---------------------\n", req)
 
 	forceAPI.traceRequest(req)
 	resp, err := http.DefaultClient.Do(req)
@@ -106,56 +121,55 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}
 
+	return forceAPI.readResponse(resp, method, path, params, payload, out)
+}
+
+func (forceAPI *API) readResponse(resp *http.Response, method, path string, params url.Values, payload, out interface{}) error {
 	forceAPI.traceResponse(resp)
 
-	// Sometimes the force API returns no body, we should catch this early
+	fmt.Printf("----------RESPONSE: %+v\n-----------------\n", resp)
+
+	// Sometimes (for updates) the force API returns no body, we should catch this early
 	if resp.StatusCode == http.StatusNoContent {
-		fmt.Printf("NNNNNNNNNNHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH:: %+v\n", resp)
 		return nil
 	}
 
-	fmt.Printf("CCCCCCCCCCCCCCCCCCCC: %+v\n", resp)
-
-	var respBytes []byte
+	var body []byte
+	var err error
 	// gzip decoding
 	if resp.Header.Get("Content-Encoding") == gzipEncodingType {
-
-		fmt.Println("GGGGGGGGGGGGGZIIIIIIIIIIIPPPP")
-		zr, err := gzip.NewReader(resp.Body)
-		if err != nil {
-			return fmt.Errorf("Cannot decode gzip response: %s", err)
-		}
-		respBytes, err = ioutil.ReadAll(zr)
-		if err != nil {
-			return fmt.Errorf("Cannot read decoded gzip response: %s", err)
-		}
-		err = zr.Close()
-		if err != nil {
-			return fmt.Errorf("Cannot close gzip reader: %s", err)
-		}
+		body, err = gzipDecode(resp.Body)
 	} else {
-		respBytes, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("Error reading response bytes: %v", err)
-		}
+		body, err = ioutil.ReadAll(resp.Body)
 	}
+
 	if resp.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("Bad response: %s", string(respBytes))
+		return fmt.Errorf("Bad response: %s", string(body))
 	}
 
 	err = resp.Body.Close()
 	if err != nil {
-		return fmt.Errorf("Cannot close request: %s", err)
+		return fmt.Errorf("Cannot close request body: %s", err)
 	}
 
-	forceAPI.traceResponseBody(respBytes)
+	err = forceAPI.processResponse(body, method, path, params, payload, out)
+	if err != nil {
+		return fmt.Errorf("Cannot process repsonse: %s", err)
+	}
 
-	fmt.Printf("----VVVVVVVVVVV: %+v\n\n", string(respBytes))
+	// Sometimes no response is expected. For example delete and update. We still have to make sure an error wasn't returned.
+	return nil
+}
+
+func (forceAPI *API) processResponse(body []byte, method, path string, params url.Values, payload, out interface{}) error {
+	forceAPI.traceResponseBody(body)
+
+	fmt.Printf("----------RESPONSE BODY: %+v\n---------------------\n", string(body))
 
 	// Attempt to parse response into out
 	var objectUnmarshalErr error
 	if out != nil {
-		objectUnmarshalErr = json.Unmarshal(respBytes, out)
+		objectUnmarshalErr = json.Unmarshal(body, out)
 		if objectUnmarshalErr == nil {
 			return nil
 		}
@@ -163,7 +177,7 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 
 	// Attempt to parse response as a force.com api error before returning object unmarshal err
 	apiErrors := APIErrors{}
-	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
+	if marshalErr := forcejson.Unmarshal(body, &apiErrors); marshalErr == nil {
 		if apiErrors.Validate() {
 			// Check if error is oauth token expired
 			if forceAPI.oauth.Expired(apiErrors) {
@@ -172,7 +186,6 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 				if oauthErr != nil {
 					return oauthErr
 				}
-
 				return forceAPI.request(method, path, params, payload, out)
 			}
 
@@ -184,8 +197,6 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 		// Not a force.com api error. Just an unmarshalling error.
 		return fmt.Errorf("Unable to unmarshal response to object: %v", objectUnmarshalErr)
 	}
-
-	// Sometimes no response is expected. For example delete and update. We still have to make sure an error wasn't returned.
 	return nil
 }
 
