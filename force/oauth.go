@@ -74,7 +74,6 @@ func (oauth *forceOauth) Authenticate() error {
 	bb := make([]byte, body.Len())
 	_, _ = body.Read(bb)
 	_, _ = body.Seek(0, 0)
-	fmt.Printf("BBBBBBBBBBBBBBBBBBBBB:::::::: %+v\n", string(bb))
 
 	if err != nil {
 		return fmt.Errorf("Error creating authenitcation request: %v", err)
@@ -85,7 +84,6 @@ func (oauth *forceOauth) Authenticate() error {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", responseType)
 
-	fmt.Printf("SSSSSSSSSSSSSSSSSSSSSSAAAAAAAAAAAAAAAAAA:::: %+v\n", req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error sending authentication request: %v", err)
@@ -96,7 +94,6 @@ func (oauth *forceOauth) Authenticate() error {
 		return fmt.Errorf("Error reading authentication response bytes: %v", err)
 	}
 
-	fmt.Printf("RRRRRRRRRRRRRRRRRRRR:::::::::::::::; %+v\nAAAAAAAAAAAAAAAAAAAAAAAA:::::: %+v\n", resp, string(respBytes))
 	err = resp.Body.Close()
 	if err != nil {
 		return fmt.Errorf("Cannot close response body: %v", err)

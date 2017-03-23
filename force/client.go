@@ -115,6 +115,18 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 	// Send
 	fmt.Printf("-------REQUEST:::::::::::: %+v\n---------------------\n", req)
 
+	// Read the content
+	var bodyBytes []byte
+	if req.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(req.Body)
+	}
+	// Restore the io.ReadCloser to its original state
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		fmt.Println("ERRRRRRRRRRRRR:::::::: ", err)
+	}
+	fmt.Printf("-------REQUEST BODY:::::::::::: %+v\n----------------\n", string(bodyBytes))
+
 	forceAPI.traceRequest(req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
