@@ -166,7 +166,7 @@ func (forceAPI *API) readResponse(resp *http.Response, method, path string, para
 
 	err = forceAPI.processResponse(body, method, path, params, payload, out)
 	if err != nil {
-		return fmt.Errorf("Cannot process repsonse: %s", err)
+		return fmt.Errorf("Cannot process response: %s", err)
 	}
 
 	// Sometimes no response is expected. For example delete and update. We still have to make sure an error wasn't returned.

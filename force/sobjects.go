@@ -31,13 +31,18 @@ func (forceAPI *API) DescribeSObjects() (map[string]*SObjectMetaData, error) {
 
 // DescribeSObject describes an SObject.
 func (forceAPI *API) DescribeSObject(in SObject) (resp *SObjectDescription, err error) {
+	return forceAPI.DescribeSObjectStr(in.APIName())
+}
+
+// DescribeSObjectStr describes an SObject.
+func (forceAPI *API) DescribeSObjectStr(object string) (resp *SObjectDescription, err error) {
 	// Check cache
-	resp, ok := forceAPI.apiSObjectDescriptions[in.APIName()]
+	resp, ok := forceAPI.apiSObjectDescriptions[object]
 	if !ok {
 		// Attempt retrieval from api
-		sObjectMetaData, ok := forceAPI.apiSObjects[in.APIName()]
+		sObjectMetaData, ok := forceAPI.apiSObjects[object]
 		if !ok {
-			err = fmt.Errorf("Unable to find metadata for object: %v", in.APIName())
+			err = fmt.Errorf("Unable to find metadata for object: %v", object)
 			return
 		}
 
@@ -67,7 +72,7 @@ func (forceAPI *API) DescribeSObject(in SObject) (resp *SObjectDescription, err 
 			resp.AllFields = allFields.String()
 		}
 
-		forceAPI.apiSObjectDescriptions[in.APIName()] = resp
+		forceAPI.apiSObjectDescriptions[object] = resp
 	}
 
 	return
@@ -162,4 +167,50 @@ func (forceAPI *API) DeleteSObjectByExternalID(id string, in SObject) (err error
 	err = forceAPI.Delete(uri, nil)
 
 	return
+}
+
+// SObjectRecord represents a single SObject with ID and name.
+type SObjectRecord struct {
+	Name string
+	ID   string `json:"Id"`
+}
+
+// SObjectList represents a list of SObjects with ID and name.
+type SObjectList struct {
+	Done    bool            `json:"done"`
+	Records []SObjectRecord `json:"records"`
+}
+
+// GetSObjectList returns a list of SObjects with the ID and name.
+func (forceAPI *API) GetSObjectList(object string) ([]SObjectRecord, error) {
+
+	resp := &SObjectList{}
+
+	qry := fmt.Sprintf("SELECT Id, Name FROM %s", object)
+	err := forceAPI.Query(qry, resp)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get object list for '%s': %s", object, err)
+	}
+	return resp.Records, nil
+}
+
+// GetAvailableRecordTypes ...
+func (forceAPI *API) GetAvailableRecordTypes(object string) ([]SObjectRecord, error) {
+	resp, err := forceAPI.DescribeSObjectStr(object)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get active record types for '%s': %s", object, err)
+	}
+
+	var recList []SObjectRecord
+	for _, rec := range resp.RecordTypeInfos {
+		if rec.Available {
+			rec := SObjectRecord{
+				Name: rec.Name,
+				ID:   rec.RecordTypeID,
+			}
+			recList = append(recList, rec)
+		}
+	}
+
+	return recList, nil
 }

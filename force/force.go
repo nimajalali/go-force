@@ -18,9 +18,22 @@ const (
 	testEnvironment   = "production"
 )
 
+var requestedObjMetadata = make(map[string]struct{})
+
+// setRequestedObjectMetadata set the list of SObjects
+// for which metadata have to be fetched.
+func setRequestedObjectMetadata(list []string) {
+	if list == nil {
+		return
+	}
+	for _, obj := range list {
+		requestedObjMetadata[obj] = struct{}{}
+	}
+}
+
 // Create initialises a new SalesForce API client.
 func Create(version, clientID, clientSecret, userName, password, securityToken,
-	environment string) (*API, error) {
+	environment string, requiredObj []string) (*API, error) {
 	oauth := &forceOauth{
 		clientID:      clientID,
 		clientSecret:  clientSecret,
@@ -29,6 +42,8 @@ func Create(version, clientID, clientSecret, userName, password, securityToken,
 		securityToken: securityToken,
 		environment:   environment,
 	}
+
+	setRequestedObjectMetadata(requiredObj)
 
 	forceAPI := &API{
 		apiResources:           make(map[string]string),
@@ -47,11 +62,15 @@ func Create(version, clientID, clientSecret, userName, password, securityToken,
 	// Init Api Resources
 	err = forceAPI.getAPIResources()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot get API resources: %s", err)
 	}
 	err = forceAPI.getAPISObjects()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot get SObjects: %s", err)
+	}
+	err = forceAPI.getAPISObjectDescriptions()
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get SObject descriptions: %s", err)
 	}
 
 	return forceAPI, nil
@@ -132,7 +151,7 @@ func CreateWithRefreshToken(version, clientID, accessToken, instanceURL string) 
 
 // Used when running tests.
 func createTest() *API {
-	forceAPI, err := Create(testVersion, testClientID, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+	forceAPI, err := Create(testVersion, testClientID, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, nil)
 	if err != nil {
 		fmt.Printf("Unable to create API for test: %v", err)
 		os.Exit(1)

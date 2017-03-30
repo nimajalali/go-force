@@ -89,6 +89,11 @@ type SBatchResponse struct {
 	Created bool      `json:"created"`
 }
 
+// SBatchInfo is container for the a list of batch status.
+type SBatchInfo struct {
+	BatchInfo []SBatch `json:"batchInfo"`
+}
+
 // CreateJob requests a new bulk job.
 func (forceAPI *API) CreateJob(bulkAPIVersion string, req *SJobRequest) (*SJob, error) {
 
@@ -162,11 +167,25 @@ func (j *SJob) Close() error {
 	return nil
 }
 
+// GetBatches returns an array containing the list of batches in a job.
+func (j *SJob) GetBatches() (*SBatchInfo, error) {
+
+	URI := fmt.Sprintf("%s/batch", j.BaseURI)
+
+	resp := &SBatchInfo{
+		BatchInfo: make([]SBatch, j.NumberRecordsProcessed),
+	}
+
+	err := j.forceAPI.Get(URI, nil, &resp)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get list of batches (%s): %s", j.ID, err.Error())
+	}
+
+	return resp, nil
+}
+
 // BatchState returns an array containing the state of each record in the batch.
 func (j *SJob) BatchState(id string) ([]SBatchResponse, error) {
-	if !j.IsOpen() {
-		return nil, fmt.Errorf("Job '%s' is in '%s' state", j.ID, j.State)
-	}
 	URI := fmt.Sprintf("%s/batch/%s/result", j.BaseURI, id)
 
 	resp := make([]SBatchResponse, j.NumberRecordsProcessed)
@@ -177,6 +196,27 @@ func (j *SJob) BatchState(id string) ([]SBatchResponse, error) {
 	}
 
 	return resp, nil
+}
+
+// GetBatchRecordIDs returns a list of records in a batch. If 'all' is false
+// only the successful records are returned. Otherwise all records are returned.
+func (j *SJob) GetBatchRecordIDs(ID string, all bool) ([]string, error) {
+
+	var recordList []string
+	records, err := j.BatchState(ID)
+	if err != nil {
+		errStr := "CRM cannot get batch state for batch '%s' in job '%s': %s"
+		return nil, fmt.Errorf(errStr, ID, j.ID, err.Error())
+	}
+
+	for _, record := range records {
+		if all {
+			recordList = append(recordList, record.ID)
+		} else if record.Success || record.Created {
+			recordList = append(recordList, record.ID)
+		}
+	}
+	return recordList, nil
 }
 
 // Abort aborts a job.

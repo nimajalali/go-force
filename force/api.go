@@ -109,7 +109,6 @@ type SObjectField struct {
 	Length                   float64          `json:"length"`
 	Name                     string           `json:"name"`
 	Type                     string           `json:"type"`
-	DefaultValue             string           `json:"defaultValue"`
 	RestrictedPicklist       bool             `json:"restrictedPicklist"`
 	NameField                bool             `json:"nameField"`
 	ByteLength               float64          `json:"byteLength"`
@@ -206,6 +205,9 @@ func (forceAPI *API) getAPISObjects() error {
 
 func (forceAPI *API) getAPISObjectDescriptions() error {
 	for name, metaData := range forceAPI.apiSObjects {
+		if _, ok := requestedObjMetadata[name]; !ok {
+			continue
+		}
 		uri := metaData.URLs[sObjectDescribeKey]
 
 		desc := &SObjectDescription{}
@@ -214,6 +216,7 @@ func (forceAPI *API) getAPISObjectDescriptions() error {
 			return err
 		}
 
+		fmt.Println("GETTING:::::::::::::::: ", name)
 		forceAPI.apiSObjectDescriptions[name] = desc
 	}
 
