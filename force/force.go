@@ -51,6 +51,7 @@ func Create(version, clientID, clientSecret, userName, password, securityToken,
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		oauth:                  oauth,
+		OpenJobs:               make(map[string]*SJob),
 	}
 
 	// Init oauth
