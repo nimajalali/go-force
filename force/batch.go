@@ -4,16 +4,21 @@ import (
 	"fmt"
 )
 
-var (
+const (
 	// job states
-	abortJob = jobState{"Aborted"}
-	closeJob = jobState{"Closed"}
-	// TODO: make this part of the client object.
-	sfVersion = ""
+	abortJob string =`Aborted`
+	closeJob string = `Closed`
 )
+
+// TODO: make this part of the client object.
+var	sfVersion string = ""
 
 type jobState struct {
 	State string `force:"state"`
+}
+
+func newJobState(state string) jobState {
+	return jobState{State: state}
 }
 
 // BaseRequest is the interface for job and batch requests.
@@ -173,7 +178,7 @@ func (j *SJob) Close() error {
 	if !j.IsOpen() {
 		return nil
 	}
-	err := j.forceAPI.Post(j.BaseURI, nil, nil, closeJob, j)
+	err := j.forceAPI.Post(j.BaseURI, nil, nil, newJobState(closeJob), j)
 	if err != nil {
 		return fmt.Errorf("Failed to close job (%s): %s", j.ID, err)
 	}
@@ -188,7 +193,7 @@ func (forceAPI *API) CloseJobByID(ID string) error {
 	uri := fmt.Sprintf("/services/async/%s/job/%s", sfVersion, ID)
 
 	job := &SJob{}
-	err := forceAPI.Post(uri, nil, nil, closeJob, job)
+	err := forceAPI.Post(uri, nil, nil, newJobState(closeJob), job)
 	if err != nil {
 		return fmt.Errorf("Failed to close job (%s): %s", ID, err)
 	}
@@ -252,7 +257,7 @@ func (j *SJob) GetBatchRecordIDs(ID string, all bool) ([]string, error) {
 // Abort aborts a job.
 func (j *SJob) Abort() error {
 	job := &SJob{}
-	err := j.forceAPI.Post(j.BaseURI, nil, nil, abortJob, job)
+	err := j.forceAPI.Post(j.BaseURI, nil, nil, newJobState(abortJob), job)
 	if err != nil {
 		return fmt.Errorf("Failed to abort job (%s): %s", j.ID, err)
 	}
