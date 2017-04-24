@@ -11,6 +11,7 @@ import (
 	"net/url"
 
 	"github.com/simplesurance/go-force/forcejson"
+	"strings"
 )
 
 const (
@@ -24,31 +25,31 @@ const (
 
 // Get issues a GET to the specified path with the given params and put the
 // umarshalled (json) result in the third parameter
-func (forceAPI *API) Get(path string, params url.Values, out interface{}) error {
-	return forceAPI.request("GET", path, params, nil, out)
+func (forceAPI *API) Get(path string, params url.Values, headers http.Header, out interface{}) error {
+	return forceAPI.request("GET", path, params, headers, nil, out)
 }
 
 // Post issues a POST to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
-func (forceAPI *API) Post(path string, params url.Values, payload, out interface{}) error {
-	return forceAPI.request("POST", path, params, payload, out)
+func (forceAPI *API) Post(path string, params url.Values, headers http.Header, payload, out interface{}) error {
+	return forceAPI.request("POST", path, params, headers, payload, out)
 }
 
 // Put issues a PUT to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
-func (forceAPI *API) Put(path string, params url.Values, payload, out interface{}) error {
-	return forceAPI.request("PUT", path, params, payload, out)
+func (forceAPI *API) Put(path string, params url.Values, headers http.Header, payload, out interface{}) error {
+	return forceAPI.request("PUT", path, params, headers, payload, out)
 }
 
 // Patch issues a PATCH to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
-func (forceAPI *API) Patch(path string, params url.Values, payload, out interface{}) error {
-	return forceAPI.request("PATCH", path, params, payload, out)
+func (forceAPI *API) Patch(path string, params url.Values, headers http.Header, payload, out interface{}) error {
+	return forceAPI.request("PATCH", path, params, headers, payload, out)
 }
 
 // Delete issues a DELETE to the specified path with the given payload
-func (forceAPI *API) Delete(path string, params url.Values) error {
-	return forceAPI.request("DELETE", path, params, nil, nil)
+func (forceAPI *API) Delete(path string, params url.Values, headers http.Header) error {
+	return forceAPI.request("DELETE", path, params, headers, nil, nil)
 }
 
 func gzipDecode(body io.Reader) ([]byte, error) {
@@ -67,7 +68,7 @@ func gzipDecode(body io.Reader) ([]byte, error) {
 	return buf, nil
 }
 
-func (forceAPI *API) request(method, path string, params url.Values, payload, out interface{}) error {
+func (forceAPI *API) request(method, path string, params url.Values, headers http.Header, payload, out interface{}) error {
 	if err := forceAPI.oauth.Validate(); err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
@@ -93,7 +94,6 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 			if err != nil {
 				return fmt.Errorf("Error marshalling encoded payload: %v", err)
 			}
-			fmt.Println("----------------REQUEST BODY: ", string(jsonBytes))
 			body = bytes.NewReader(jsonBytes)
 		}
 	}
@@ -112,20 +112,10 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceAPI.oauth.AccessToken))
 	req.Header.Set("X-SFDC-Session", forceAPI.oauth.AccessToken)
 
-	// Send
-	fmt.Printf("-------REQUEST:::::::::::: %+v\n---------------------\n", req)
-
-	// Read the content
-	var bodyBytes []byte
-	if req.Body != nil {
-		bodyBytes, _ = ioutil.ReadAll(req.Body)
+	// Additional headers
+	for key := range headers {
+		req.Header.Set(key, strings.Join(headers[key], ", "))
 	}
-	// Restore the io.ReadCloser to its original state
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-	if err != nil {
-		fmt.Println("ERRRRRRRRRRRRR:::::::: ", err)
-	}
-	fmt.Printf("-------REQUEST BODY:::::::::::: %+v\n----------------\n", string(bodyBytes))
 
 	forceAPI.traceRequest(req)
 	resp, err := http.DefaultClient.Do(req)
@@ -133,10 +123,10 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}
 
-	return forceAPI.readResponse(resp, method, path, params, payload, out)
+	return forceAPI.readResponse(resp, method, path, params, headers, payload, out)
 }
 
-func (forceAPI *API) readResponse(resp *http.Response, method, path string, params url.Values, payload, out interface{}) error {
+func (forceAPI *API) readResponse(resp *http.Response, method, path string, params url.Values, headers http.Header, payload, out interface{}) error {
 	forceAPI.traceResponse(resp)
 
 	fmt.Printf("----------RESPONSE: %+v\n-----------------\n", resp)
@@ -164,7 +154,7 @@ func (forceAPI *API) readResponse(resp *http.Response, method, path string, para
 		return fmt.Errorf("Cannot close request body: %s", err)
 	}
 
-	err = forceAPI.processResponse(body, method, path, params, payload, out)
+	err = forceAPI.processResponse(body, method, path, params, headers, payload, out)
 	if err != nil {
 		return fmt.Errorf("Cannot process response: %s", err)
 	}
@@ -173,7 +163,7 @@ func (forceAPI *API) readResponse(resp *http.Response, method, path string, para
 	return nil
 }
 
-func (forceAPI *API) processResponse(body []byte, method, path string, params url.Values, payload, out interface{}) error {
+func (forceAPI *API) processResponse(body []byte, method, path string, params url.Values, headers http.Header, payload, out interface{}) error {
 	forceAPI.traceResponseBody(body)
 
 	fmt.Printf("----------RESPONSE BODY: %+v\n---------------------\n", string(body))
@@ -198,7 +188,7 @@ func (forceAPI *API) processResponse(body []byte, method, path string, params ur
 				if oauthErr != nil {
 					return oauthErr
 				}
-				return forceAPI.request(method, path, params, payload, out)
+				return forceAPI.request(method, path, params, headers, payload, out)
 			}
 
 			return apiErrors

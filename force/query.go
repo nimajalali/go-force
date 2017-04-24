@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"net/http"
 )
 
 const (
@@ -23,14 +24,14 @@ func BuildQuery(fields, table string, constraints []string) string {
 
 // Query executes a SOQL query that returns all the results in a single response,
 // or if needed, returns part of the results and an identifier used to retrieve the remaining results.
-func (forceAPI *API) Query(query string, out interface{}) (err error) {
+func (forceAPI *API) Query(query string, headers http.Header, out interface{}) (err error) {
 	uri := forceAPI.apiResources[queryKey]
 
 	params := url.Values{
 		"q": {query},
 	}
 
-	err = forceAPI.Get(uri, params, out)
+	err = forceAPI.Get(uri, params, headers, out)
 
 	return
 }
@@ -45,14 +46,14 @@ func (forceAPI *API) QueryAll(query string, out interface{}) (err error) {
 		"q": {query},
 	}
 
-	err = forceAPI.Get(uri, params, out)
+	err = forceAPI.Get(uri, params, nil, out)
 
 	return
 }
 
 // QueryNext returns the next row in a query.
 func (forceAPI *API) QueryNext(uri string, out interface{}) (err error) {
-	err = forceAPI.Get(uri, nil, out)
+	err = forceAPI.Get(uri, nil, nil, out)
 
 	return
 }

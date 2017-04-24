@@ -100,7 +100,7 @@ func (forceAPI *API) CreateJob(bulkAPIVersion string, req *SJobRequest) (*SJob, 
 	uri := fmt.Sprintf("/services/async/%s/job", bulkAPIVersion)
 
 	job := &SJob{}
-	err := forceAPI.Post(uri, nil, req, job)
+	err := forceAPI.Post(uri, nil, nil, req, job)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a new job: %s", err)
 	}
@@ -128,7 +128,7 @@ func (j *SJob) AddBatch(payload interface{}) (*SBatch, error) {
 	uri := fmt.Sprintf("%s/batch", j.BaseURI)
 
 	batch := &SBatch{}
-	err := j.forceAPI.Post(uri, nil, payload, batch)
+	err := j.forceAPI.Post(uri, nil, nil, payload, batch)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a new batch: %s", err)
 	}
@@ -141,7 +141,7 @@ func (j *SJob) GetState() (string, error) {
 
 	job := &SJob{}
 
-	err := j.forceAPI.Get(j.BaseURI, nil, job)
+	err := j.forceAPI.Get(j.BaseURI, nil, nil, job)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get job (%s) state: %s", j.ID, err)
 	}
@@ -157,7 +157,7 @@ func (j *SJob) Close() error {
 		return nil
 	}
 	job := &SJob{}
-	err := j.forceAPI.Post(j.BaseURI, nil, closeJob, job)
+	err := j.forceAPI.Post(j.BaseURI, nil, nil,closeJob, job)
 	if err != nil {
 		return fmt.Errorf("Failed to close job (%s): %s", j.ID, err)
 	}
@@ -176,7 +176,7 @@ func (j *SJob) GetBatches() (*SBatchInfo, error) {
 		BatchInfo: make([]SBatch, j.NumberRecordsProcessed),
 	}
 
-	err := j.forceAPI.Get(URI, nil, &resp)
+	err := j.forceAPI.Get(URI, nil, nil, &resp)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get list of batches (%s): %s", j.ID, err.Error())
 	}
@@ -190,7 +190,7 @@ func (j *SJob) BatchState(id string) ([]SBatchResponse, error) {
 
 	resp := make([]SBatchResponse, j.NumberRecordsProcessed)
 
-	err := j.forceAPI.Get(URI, nil, &resp)
+	err := j.forceAPI.Get(URI, nil,nil, &resp)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get batch (%s) state: %s", id, err.Error())
 	}
@@ -222,7 +222,7 @@ func (j *SJob) GetBatchRecordIDs(ID string, all bool) ([]string, error) {
 // Abort aborts a job.
 func (j *SJob) Abort() error {
 	job := &SJob{}
-	err := j.forceAPI.Post(j.BaseURI, nil, abortJob, job)
+	err := j.forceAPI.Post(j.BaseURI, nil, nil, abortJob, job)
 	if err != nil {
 		return fmt.Errorf("Failed to abort job (%s): %s", j.ID, err)
 	}
