@@ -49,7 +49,7 @@ func (forceAPI *API) DescribeSObjectStr(object string) (resp *SObjectDescription
 		uri := sObjectMetaData.URLs[sObjectDescribeKey]
 
 		resp = &SObjectDescription{}
-		err = forceAPI.Get(uri, nil, resp)
+		err = forceAPI.Get(uri, nil, nil, resp)
 		if err != nil {
 			return
 		}
@@ -87,7 +87,7 @@ func (forceAPI *API) GetSObject(id string, fields []string, out SObject) (err er
 		params.Add("fields", strings.Join(fields, ","))
 	}
 
-	err = forceAPI.Get(uri, params, out.(interface{}))
+	err = forceAPI.Get(uri, params, nil, out.(interface{}))
 
 	return
 }
@@ -97,7 +97,7 @@ func (forceAPI *API) InsertSObject(in SObject) (resp *SObjectResponse, err error
 	uri := forceAPI.apiSObjects[in.APIName()].URLs[sObjectKey]
 
 	resp = &SObjectResponse{}
-	err = forceAPI.Post(uri, nil, in.(interface{}), resp)
+	err = forceAPI.Post(uri, nil, nil, in.(interface{}), resp)
 
 	return
 }
@@ -106,7 +106,7 @@ func (forceAPI *API) InsertSObject(in SObject) (resp *SObjectResponse, err error
 func (forceAPI *API) UpdateSObject(id string, in SObject) (err error) {
 	uri := strings.Replace(forceAPI.apiSObjects[in.APIName()].URLs[rowTemplateKey], idKey, id, 1)
 
-	err = forceAPI.Patch(uri, nil, in.(interface{}), nil)
+	err = forceAPI.Patch(uri, nil, nil, in.(interface{}), nil)
 
 	return
 }
@@ -115,7 +115,7 @@ func (forceAPI *API) UpdateSObject(id string, in SObject) (err error) {
 func (forceAPI *API) DeleteSObject(id string, in SObject) (err error) {
 	uri := strings.Replace(forceAPI.apiSObjects[in.APIName()].URLs[rowTemplateKey], idKey, id, 1)
 
-	err = forceAPI.Delete(uri, nil)
+	err = forceAPI.Delete(uri, nil, nil)
 
 	return
 }
@@ -130,7 +130,7 @@ func (forceAPI *API) GetSObjectByExternalID(id string, fields []string, out SObj
 		params.Add("fields", strings.Join(fields, ","))
 	}
 
-	err = forceAPI.Get(uri, params, out.(interface{}))
+	err = forceAPI.Get(uri, params, nil, out.(interface{}))
 
 	return
 }
@@ -142,7 +142,7 @@ func (forceAPI *API) UpsertSObjectByExternalID(id string, in SObject) (resp *SOb
 		in.ExternalIDAPIName(), id)
 
 	resp = &SObjectResponse{}
-	err = forceAPI.Patch(uri, nil, in.(interface{}), resp)
+	err = forceAPI.Patch(uri, nil, nil, in.(interface{}), resp)
 
 	return
 }
@@ -154,7 +154,7 @@ func (forceAPI *API) UpsertSObjectStringByExternalID(object, extenalID, id, data
 	uri := fmt.Sprintf("%v/%v/%v", forceAPI.apiSObjects[object].URLs[sObjectKey], extenalID, id)
 
 	resp = &SObjectResponse{}
-	err = forceAPI.Patch(uri, nil, data, resp)
+	err = forceAPI.Patch(uri, nil, nil, data, resp)
 
 	return
 }
@@ -164,7 +164,7 @@ func (forceAPI *API) DeleteSObjectByExternalID(id string, in SObject) (err error
 	uri := fmt.Sprintf("%v/%v/%v", forceAPI.apiSObjects[in.APIName()].URLs[sObjectKey],
 		in.ExternalIDAPIName(), id)
 
-	err = forceAPI.Delete(uri, nil)
+	err = forceAPI.Delete(uri, nil, nil)
 
 	return
 }
@@ -187,7 +187,7 @@ func (forceAPI *API) GetSObjectList(object string) ([]SObjectRecord, error) {
 	resp := &SObjectList{}
 
 	qry := fmt.Sprintf("SELECT Id, Name FROM %s", object)
-	err := forceAPI.Query(qry, resp)
+	err := forceAPI.Query(qry, nil,resp)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot get object list for '%s': %s", object, err)
 	}
