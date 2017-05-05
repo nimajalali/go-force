@@ -34,5 +34,5 @@ func (j *SJob) FileUpload(params map[string]string, paramName string, file *os.F
 	batch := &SBatch{}
 	err = j.forceAPI.readResponse(resp, "POST", "", nil, nil, "", batch)
 
-	return batch, nil
+	return batch, err
 }
