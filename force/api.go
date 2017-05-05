@@ -183,14 +183,14 @@ type ChildRelationship struct {
 func (forceAPI *API) getAPIResources() error {
 	uri := fmt.Sprintf(resourcesURI, forceAPI.apiVersion)
 
-	return forceAPI.Get(uri, nil, &forceAPI.apiResources)
+	return forceAPI.Get(uri, nil, nil, &forceAPI.apiResources)
 }
 
 func (forceAPI *API) getAPISObjects() error {
 	uri := forceAPI.apiResources[sObjectsKey]
 
 	list := &SObjectAPIResponse{}
-	err := forceAPI.Get(uri, nil, list)
+	err := forceAPI.Get(uri, nil, nil, list)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func (forceAPI *API) getAPISObjectDescriptions() error {
 		uri := metaData.URLs[sObjectDescribeKey]
 
 		desc := &SObjectDescription{}
-		err := forceAPI.Get(uri, nil, desc)
+		err := forceAPI.Get(uri, nil, nil, desc)
 		if err != nil {
 			return err
 		}
@@ -244,7 +244,7 @@ func (forceAPI *API) RefreshToken() error {
 		"client_secret": forceAPI.oauth.clientSecret,
 	}
 
-	err := forceAPI.Post("/services/oauth2/token", nil, payload, res)
+	err := forceAPI.Post("/services/oauth2/token", nil, nil, payload, res)
 	if err != nil {
 		return err
 	}
