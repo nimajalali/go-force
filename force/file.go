@@ -25,8 +25,6 @@ func (j *SJob) FileUpload(params map[string]string, paramName string, file *os.F
 	req.Header.Set("Content-Type", zipJSONContentType)
 	req.Header.Set("Content-Length", strconv.FormatInt(fi.Size(), 10))
 
-	fmt.Printf("--------------------FILE REQ:::: %+v\n", req)
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

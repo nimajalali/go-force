@@ -14,7 +14,8 @@ const (
 	loginURI     = "https://login.salesforce.com/services/oauth2/token"
 	testLoginURI = "https://test.salesforce.com/services/oauth2/token"
 
-	invalidSessionErrorCode = "INVALID_SESSION_ID"
+	invalidSessionErrorCode     = "INVALID_SESSION_ID"
+	invalidSessionExceptionCode = "InvalidSessionId"
 )
 
 type forceOauth struct {
@@ -43,7 +44,8 @@ func (oauth *forceOauth) Validate() error {
 
 func (oauth *forceOauth) Expired(apiErrors APIErrors) bool {
 	for _, err := range apiErrors {
-		if err.ErrorCode == invalidSessionErrorCode {
+		if err.ErrorCode == invalidSessionErrorCode || // REST API
+			err.ExceptionCode == invalidSessionExceptionCode { // SOAP API
 			return true
 		}
 	}

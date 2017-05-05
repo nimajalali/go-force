@@ -51,6 +51,7 @@ func Create(version, clientID, clientSecret, userName, password, securityToken,
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		oauth:                  oauth,
+		openJobMap:             make(map[string]SJob),
 	}
 
 	// Init oauth
@@ -90,6 +91,7 @@ func CreateWithAccessToken(version, clientID, accessToken, instanceURL string) (
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		oauth:                  oauth,
+		openJobMap:             make(map[string]SJob),
 	}
 
 	// We need to check for oath correctness here, since we are not generating the token ourselves.
@@ -124,6 +126,7 @@ func CreateWithRefreshToken(version, clientID, accessToken, instanceURL string) 
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		oauth:                  oauth,
+		openJobMap:             make(map[string]SJob),
 	}
 
 	// obtain access token

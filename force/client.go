@@ -93,7 +93,6 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 			if err != nil {
 				return fmt.Errorf("Error marshalling encoded payload: %v", err)
 			}
-			fmt.Println("----------------REQUEST BODY: ", string(jsonBytes))
 			body = bytes.NewReader(jsonBytes)
 		}
 	}
@@ -112,9 +111,6 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceAPI.oauth.AccessToken))
 	req.Header.Set("X-SFDC-Session", forceAPI.oauth.AccessToken)
 
-	// Send
-	fmt.Printf("-------REQUEST:::::::::::: %+v\n---------------------\n", req)
-
 	// Read the content
 	var bodyBytes []byte
 	if req.Body != nil {
@@ -123,9 +119,8 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 	// Restore the io.ReadCloser to its original state
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 	if err != nil {
-		fmt.Println("ERRRRRRRRRRRRR:::::::: ", err)
+		return fmt.Errorf("Error reading %v request: %v", method, err)
 	}
-	fmt.Printf("-------REQUEST BODY:::::::::::: %+v\n----------------\n", string(bodyBytes))
 
 	forceAPI.traceRequest(req)
 	resp, err := http.DefaultClient.Do(req)
@@ -139,8 +134,6 @@ func (forceAPI *API) request(method, path string, params url.Values, payload, ou
 func (forceAPI *API) readResponse(resp *http.Response, method, path string, params url.Values, payload, out interface{}) error {
 	forceAPI.traceResponse(resp)
 
-	fmt.Printf("----------RESPONSE: %+v\n-----------------\n", resp)
-
 	// Sometimes (for updates) the force API returns no body, we should catch this early
 	if resp.StatusCode == http.StatusNoContent {
 		return nil
@@ -153,10 +146,6 @@ func (forceAPI *API) readResponse(resp *http.Response, method, path string, para
 		body, err = gzipDecode(resp.Body)
 	} else {
 		body, err = ioutil.ReadAll(resp.Body)
-	}
-
-	if resp.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("Bad response: %s", string(body))
 	}
 
 	err = resp.Body.Close()
@@ -175,8 +164,6 @@ func (forceAPI *API) readResponse(resp *http.Response, method, path string, para
 
 func (forceAPI *API) processResponse(body []byte, method, path string, params url.Values, payload, out interface{}) error {
 	forceAPI.traceResponseBody(body)
-
-	fmt.Printf("----------RESPONSE BODY: %+v\n---------------------\n", string(body))
 
 	// Attempt to parse response into out
 	var objectUnmarshalErr error

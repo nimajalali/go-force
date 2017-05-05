@@ -28,6 +28,8 @@ type API struct {
 	apiMaxBatchSize        int64
 	logger                 APILogger
 	logPrefix              string
+	// openJobMap contains a list of open jobs mapped by ID.
+	openJobMap map[string]SJob
 }
 
 // RefreshTokenResponse represents a refresh token.
@@ -216,7 +218,6 @@ func (forceAPI *API) getAPISObjectDescriptions() error {
 			return err
 		}
 
-		fmt.Println("GETTING:::::::::::::::: ", name)
 		forceAPI.apiSObjectDescriptions[name] = desc
 	}
 

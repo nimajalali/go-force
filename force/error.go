@@ -15,6 +15,11 @@ type APIError struct {
 	ErrorCode        string   `json:"errorCode,omitempty" force:"errorCode,omitempty"`
 	ErrorName        string   `json:"error,omitempty" force:"error,omitempty"`
 	ErrorDescription string   `json:"error_description,omitempty" force:"error_description,omitempty"`
+	// batch error fields
+	// NOTE:
+	// Bulk API uses the same status codes and exception codes as SOAP API.
+	ExceptionCode    string `json:"exceptionCode,omitempty" force:"exceptionCode,omitempty"`
+	ExceptionMessage string `json:"exceptionMessage,omitempty" force:"exceptionMessage,omitempty"`
 }
 
 // Error returns the string representation for an APIErrors.
@@ -49,7 +54,8 @@ func (e APIError) String() string {
 
 // Validate validates an APIError.
 func (e APIError) Validate() bool {
-	if len(e.Fields) != 0 || len(e.Message) != 0 || len(e.ErrorCode) != 0 || len(e.ErrorName) != 0 || len(e.ErrorDescription) != 0 {
+	if len(e.Fields) != 0 || len(e.Message) != 0 || len(e.ErrorCode) != 0 || len(e.ErrorName) != 0 || len(e.ErrorDescription) != 0 ||
+		len(e.ExceptionCode) != 0 || len(e.ExceptionMessage) != 0 {
 		return true
 	}
 
