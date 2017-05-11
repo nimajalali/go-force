@@ -124,10 +124,6 @@ func (forceAPI *API) request(method, path string, params url.Values, headers htt
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}
 
-	return forceAPI.readResponse(resp, method, path, params, headers, payload, out)
-}
-
-func (forceAPI *API) readResponse(resp *http.Response, method, path string, params url.Values, headers http.Header, payload, out interface{}) error {
 	forceAPI.traceResponse(resp)
 
 	// Sometimes (for updates) the force API returns no body, we should catch this early
@@ -135,13 +131,12 @@ func (forceAPI *API) readResponse(resp *http.Response, method, path string, para
 		return nil
 	}
 
-	var body []byte
-	var err error
 	// gzip decoding
+	respBytes := []byte{}
 	if resp.Header.Get("Content-Encoding") == gzipEncodingType {
-		body, err = gzipDecode(resp.Body)
+		respBytes, err = gzipDecode(resp.Body)
 	} else {
-		body, err = ioutil.ReadAll(resp.Body)
+		respBytes, err = ioutil.ReadAll(resp.Body)
 	}
 
 	err = resp.Body.Close()
@@ -149,22 +144,12 @@ func (forceAPI *API) readResponse(resp *http.Response, method, path string, para
 		return fmt.Errorf("Cannot close request body: %s", err)
 	}
 
-	err = forceAPI.processResponse(body, method, path, params, headers, payload, out)
-	if err != nil {
-		return fmt.Errorf("Cannot process response: %s", err)
-	}
-
-	// Sometimes no response is expected. For example delete and update. We still have to make sure an error wasn't returned.
-	return nil
-}
-
-func (forceAPI *API) processResponse(body []byte, method, path string, params url.Values, headers http.Header, payload, out interface{}) error {
-	forceAPI.traceResponseBody(body)
+	forceAPI.traceResponseBody(respBytes)
 
 	// Attempt to parse response into out
 	var objectUnmarshalErr error
 	if out != nil {
-		objectUnmarshalErr = json.Unmarshal(body, out)
+		objectUnmarshalErr = json.Unmarshal(respBytes, out)
 		if objectUnmarshalErr == nil {
 			return nil
 		}
@@ -172,11 +157,12 @@ func (forceAPI *API) processResponse(body []byte, method, path string, params ur
 
 	// Attempt to parse response as a force.com api error before returning object unmarshal err
 	apiErrors := APIErrors{}
-	if marshalErr := forcejson.Unmarshal(body, &apiErrors); marshalErr == nil {
+	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
 		if apiErrors.Validate() {
 			// Check if error is oauth token expired
 			if forceAPI.oauth.Expired(apiErrors) {
 				forceAPI.logger.Printf("ForceApi session token has expired")
+
 				// Reauthenticate then attempt query again
 				forceAPI.logger.Printf("Trying to get a new session token")
 				oauthErr := forceAPI.oauth.Authenticate()
@@ -196,6 +182,8 @@ func (forceAPI *API) processResponse(body []byte, method, path string, params ur
 		// Not a force.com api error. Just an unmarshalling error.
 		return fmt.Errorf("Unable to unmarshal response to object: %v", objectUnmarshalErr)
 	}
+
+	// Sometimes no response is expected. For example delete and update. We still have to make sure an error wasn't returned.
 	return nil
 }
 
