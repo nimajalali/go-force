@@ -176,11 +176,15 @@ func (forceAPI *API) processResponse(body []byte, method, path string, params ur
 		if apiErrors.Validate() {
 			// Check if error is oauth token expired
 			if forceAPI.oauth.Expired(apiErrors) {
+				forceAPI.logger.Printf("ForceApi session token has expired")
 				// Reauthenticate then attempt query again
+				forceAPI.logger.Printf("Trying to get a new session token")
 				oauthErr := forceAPI.oauth.Authenticate()
 				if oauthErr != nil {
+					forceAPI.logger.Printf("Failed to get a new session token: %v", oauthErr)
 					return oauthErr
 				}
+				forceAPI.logger.Printf("Resending the previous request: %v, %v, %v", method, path, payload)
 				return forceAPI.request(method, path, params, headers, payload, out)
 			}
 
