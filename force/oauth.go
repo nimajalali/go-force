@@ -72,7 +72,7 @@ func (oauth *forceOauth) Authenticate() error {
 	// Build Request
 	req, err := http.NewRequest("POST", uri, body)
 	if err != nil {
-		return fmt.Errorf("Error creating authenitcation request: %v", err)
+		return fmt.Errorf("Error creating authentication request: %v", err)
 	}
 
 	// Add Headers

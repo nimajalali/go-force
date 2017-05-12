@@ -13,7 +13,7 @@ type SObject interface {
 	ExternalIdApiName() string
 }
 
-// Response recieved from force.com API after insert of an sobject.
+// Response received from force.com API after insert of an sobject.
 type SObjectResponse struct {
 	Id      string    `force:"id,omitempty"`
 	Errors  ApiErrors `force:"error,omitempty"` //TODO: Not sure if ApiErrors is the right object
