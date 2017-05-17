@@ -85,17 +85,20 @@ func (forceAPI *API) request(method, path string, params url.Values, headers htt
 
 	// Build body
 	var body io.Reader
+	var reqBody []byte
 	if payload != nil {
 
 		switch payload.(type) {
 		case string:
 			body = bytes.NewReader([]byte(payload.(string)))
+			reqBody = []byte(payload.(string))
 		default:
 			jsonBytes, err := forcejson.Marshal(payload)
 			if err != nil {
 				return fmt.Errorf("Error marshalling encoded payload: %v", err)
 			}
 			body = bytes.NewReader(jsonBytes)
+			reqBody = jsonBytes
 		}
 	}
 
@@ -119,6 +122,8 @@ func (forceAPI *API) request(method, path string, params url.Values, headers htt
 	}
 
 	forceAPI.traceRequest(req)
+	forceAPI.traceRequestBody(reqBody)
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error sending %v request: %v", method, err)
@@ -134,9 +139,13 @@ func (forceAPI *API) request(method, path string, params url.Values, headers htt
 	// gzip decoding
 	respBytes := []byte{}
 	if resp.Header.Get("Content-Encoding") == gzipEncodingType {
-		respBytes, err = gzipDecode(resp.Body)
+		if respBytes, err = gzipDecode(resp.Body); err != nil {
+			return fmt.Errorf("Failed to gzip decode response: %v", err)
+		}
 	} else {
-		respBytes, err = ioutil.ReadAll(resp.Body)
+		if respBytes, err = ioutil.ReadAll(resp.Body); err != nil {
+			return fmt.Errorf("Failed to read response: %v", err)
+		}
 	}
 
 	err = resp.Body.Close()
@@ -189,13 +198,19 @@ func (forceAPI *API) request(method, path string, params url.Values, headers htt
 
 func (forceAPI *API) traceRequest(req *http.Request) {
 	if forceAPI.logger != nil {
-		forceAPI.trace("Request:", req, "%v")
+		forceAPI.trace("Request:", req, "%+v")
+	}
+}
+
+func (forceAPI *API) traceRequestBody(body []byte) {
+	if forceAPI.logger != nil && len(body) > 0 {
+		forceAPI.trace("Request Body:", string(body), "%s")
 	}
 }
 
 func (forceAPI *API) traceResponse(resp *http.Response) {
 	if forceAPI.logger != nil {
-		forceAPI.trace("Response:", resp, "%v")
+		forceAPI.trace("Response:", resp, "%+v")
 	}
 }
 
