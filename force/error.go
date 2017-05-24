@@ -39,7 +39,15 @@ func (e APIErrors) String() string {
 
 // Validate validates an APIErrors.
 func (e APIErrors) Validate() bool {
-	return len(e) != 0
+	if len(e) != 0 {
+		for _, err := range e {
+			if err.Validate() {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // Error returns the string representation for an APIError.

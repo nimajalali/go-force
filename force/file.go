@@ -1,7 +1,6 @@
 package force
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -59,33 +58,50 @@ func (forceAPI *API) FileUpload(j *SJob, params map[string]string, paramName str
 
 	forceAPI.traceResponseBody(respBytes)
 
-	// Attempt to parse response into out
-	var objectUnmarshalErr error
-	objectUnmarshalErr = json.Unmarshal(respBytes, batch)
-	if objectUnmarshalErr == nil {
-		return batch, nil
-	}
-
 	// Attempt to parse response as a force.com api error before returning object unmarshal err
 	apiErrors := APIErrors{}
-	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
+	apiError := &APIError{}
+	if marshalErr := forcejson.Unmarshal(respBytes, &apiError); marshalErr == nil {
+		if apiError.Validate() {
+			apiErrors = append(apiErrors, apiError)
+		}
+	}
+
+	var marshalErr error
+	if len(apiErrors) == 0 {
+		// Attempt to parse response as a force.com api error before returning object unmarshal err
+		marshalErr = forcejson.Unmarshal(respBytes, &apiErrors)
+	}
+
+	if marshalErr == nil {
 		if apiErrors.Validate() {
 			// Check if error is oauth token expired
 			if forceAPI.oauth.Expired(apiErrors) {
-				forceAPI.logger.Printf("ForceApi session token has expired")
+
+				if forceAPI.logger != nil {
+					forceAPI.logger.Printf("ForceApi session token has expired")
+				}
 
 				// Reauthenticate then attempt query again
-				forceAPI.logger.Printf("Trying to get a new session token")
 				oauthErr := forceAPI.oauth.Authenticate()
 				if oauthErr != nil {
-					forceAPI.logger.Printf("Failed to get a new session token: %v", oauthErr)
+					if forceAPI.logger != nil {
+						forceAPI.logger.Printf("Failed to get a new session token: %v", oauthErr)
+					}
 					return nil, oauthErr
 				}
+
 				return forceAPI.FileUpload(j, params, paramName, file)
 			}
 
 			return nil, apiErrors
 		}
+	}
+
+	var objectUnmarshalErr error
+	objectUnmarshalErr = forcejson.Unmarshal(respBytes, batch)
+	if objectUnmarshalErr == nil {
+		return batch, nil
 	}
 
 	if objectUnmarshalErr != nil {

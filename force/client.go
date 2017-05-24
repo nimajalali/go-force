@@ -3,7 +3,6 @@ package force
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -155,35 +154,54 @@ func (forceAPI *API) request(method, path string, params url.Values, headers htt
 
 	forceAPI.traceResponseBody(respBytes)
 
-	// Attempt to parse response into out
-	var objectUnmarshalErr error
-	if out != nil {
-		objectUnmarshalErr = json.Unmarshal(respBytes, out)
-		if objectUnmarshalErr == nil {
-			return nil
+	apiErrors := APIErrors{}
+	apiError := &APIError{}
+	if marshalErr := forcejson.Unmarshal(respBytes, &apiError); marshalErr == nil {
+		if apiError.Validate() {
+			apiErrors = append(apiErrors, apiError)
 		}
 	}
 
-	// Attempt to parse response as a force.com api error before returning object unmarshal err
-	apiErrors := APIErrors{}
-	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
+	var marshalErr error
+	if len(apiErrors) == 0 {
+		// Attempt to parse response as a force.com api error before returning object unmarshal err
+		marshalErr = forcejson.Unmarshal(respBytes, &apiErrors)
+	}
+
+	if marshalErr == nil {
 		if apiErrors.Validate() {
 			// Check if error is oauth token expired
 			if forceAPI.oauth.Expired(apiErrors) {
-				forceAPI.logger.Printf("ForceApi session token has expired")
+
+				if forceAPI.logger != nil {
+					forceAPI.logger.Printf("ForceApi session token has expired")
+				}
 
 				// Reauthenticate then attempt query again
-				forceAPI.logger.Printf("Trying to get a new session token")
 				oauthErr := forceAPI.oauth.Authenticate()
 				if oauthErr != nil {
-					forceAPI.logger.Printf("Failed to get a new session token: %v", oauthErr)
+					if forceAPI.logger != nil {
+						forceAPI.logger.Printf("Failed to get a new session token: %v", oauthErr)
+					}
 					return oauthErr
 				}
-				forceAPI.logger.Printf("Resending the previous request: %v, %v, %v", method, path, payload)
+
+				if forceAPI.logger != nil {
+					forceAPI.logger.Printf("Resending the previous request: %v, %v, %v", method, path, payload)
+				}
 				return forceAPI.request(method, path, params, headers, payload, out)
 			}
 
 			return apiErrors
+		}
+	}
+
+	// Attempt to parse response into out
+	var objectUnmarshalErr error
+	if out != nil {
+		objectUnmarshalErr = forcejson.Unmarshal(respBytes, out)
+		if objectUnmarshalErr == nil {
+			return nil
 		}
 	}
 
