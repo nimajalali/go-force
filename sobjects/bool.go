@@ -1,3 +1,7 @@
+package sobjects
+
+import "encoding/json"
+
 // Don't use this! It was an interesting effort but in reality all you need is a ptr to a bool. *bool will solve all your problems. :)
 // Used to represent empty bools. Go types are always instantiated with a default value, for bool the default value is false.
 // This makes it difficult to update an SObject without overwriting any boolean field to false.
@@ -10,10 +14,6 @@
 // If no value is set the unmarshaller will skip the field and the int will default to 0.
 // Marshalling: -1 will be marshaled to false, 1 will be marshaled to true, and
 // 0 will be marshaled to nothing (assuming the field has the omitempty json tag `json:",omitempty"`)
-package sobjects
-
-import "encoding/json"
-
 type SFBool int
 
 func (t *SFBool) MarshalJSON() ([]byte, error) {
