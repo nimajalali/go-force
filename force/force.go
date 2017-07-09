@@ -89,11 +89,12 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 	return forceApi, nil
 }
 
-func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+func CreateWithRefreshToken(version, clientId, clientSecret, refreshToken, instanceUrl string) (*ForceApi, error) {
 	oauth := &forceOauth{
-		clientId:    clientId,
-		AccessToken: accessToken,
-		InstanceUrl: instanceUrl,
+		clientId:     clientId,
+		clientSecret: clientSecret,
+		refreshToken: refreshToken,
+		InstanceUrl:  instanceUrl,
 	}
 
 	forceApi := &ForceApi{

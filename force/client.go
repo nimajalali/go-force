@@ -2,13 +2,12 @@ package force
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/nimajalali/go-force/forcejson"
 )
 
 const (
@@ -65,7 +64,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	var body io.Reader
 	if payload != nil {
 
-		jsonBytes, err := forcejson.Marshal(payload)
+		jsonBytes, err := json.Marshal(payload)
 		if err != nil {
 			return fmt.Errorf("Error marshaling encoded payload: %v", err)
 		}
@@ -108,7 +107,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	// Attempt to parse response into out
 	var objectUnmarshalErr error
 	if out != nil {
-		objectUnmarshalErr = forcejson.Unmarshal(respBytes, out)
+		objectUnmarshalErr = json.Unmarshal(respBytes, out)
 		if objectUnmarshalErr == nil {
 			return nil
 		}
@@ -116,7 +115,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 
 	// Attempt to parse response as a force.com api error before returning object unmarshal err
 	apiErrors := ApiErrors{}
-	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
+	if marshalErr := json.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
 		if apiErrors.Validate() {
 			// Check if error is oauth token expired
 			if forceApi.oauth.Expired(apiErrors) {

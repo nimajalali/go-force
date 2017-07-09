@@ -34,7 +34,8 @@ type forceOauth struct {
 }
 
 func (oauth *forceOauth) Validate() error {
-	if oauth == nil || len(oauth.InstanceUrl) == 0 || len(oauth.AccessToken) == 0 {
+	if oauth == nil || len(oauth.InstanceUrl) == 0 ||
+		(len(oauth.AccessToken) == 0 && len(oauth.refreshToken) == 0) {
 		return fmt.Errorf("Invalid Force Oauth Object: %#v", oauth)
 	}
 
