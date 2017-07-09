@@ -16,20 +16,21 @@ const (
 	rowTemplateKey = "rowTemplate"
 	idKey          = "{ID}"
 
-	resourcesUri = "/services/data/%v"
+	resourcesURI = "/services/data/%v"
 )
 
-type ForceApi struct {
+type ForceAPI struct {
 	apiVersion             string
 	oauth                  *forceOauth
 	apiResources           map[string]string
 	apiSObjects            map[string]*SObjectMetaData
 	apiSObjectDescriptions map[string]*SObjectDescription
 	apiMaxBatchSize        int64
-	logger                 ForceApiLogger
+	logger                 ForceAPILogger
 	logPrefix              string
 }
 
+// RefreshTokenResponse represents a refresh token grant response object
 type RefreshTokenResponse struct {
 	ID          string `json:"id"`
 	IssuedAt    string `json:"issued_at"`
@@ -37,7 +38,8 @@ type RefreshTokenResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-type SObjectApiResponse struct {
+// SObjectAPIResponse represents an SObject response object
+type SObjectAPIResponse struct {
 	Encoding     string             `json:"encoding"`
 	MaxBatchSize int64              `json:"maxBatchSize"`
 	SObjects     []*SObjectMetaData `json:"sobjects"`
@@ -140,8 +142,8 @@ type SObjectField struct {
 	CascadeDelete            bool             `json:"cascasdeDelete"`
 	RestrictedDelete         bool             `json:"restrictedDelete"`
 	ControllerName           string           `json:"controllerName"`
-	ExternalId               bool             `json:"externalId"`
-	IdLookup                 bool             `json:"idLookup"`
+	ExternalID               bool             `json:"externalId"`
+	IDLookup                 bool             `json:"idLookup"`
 	AutoNumber               bool             `json:"autoNumber"`
 	RelationshipName         string           `json:"relationshipName"`
 }
@@ -157,7 +159,7 @@ type PicklistValue struct {
 type RecordTypeInfo struct {
 	Name                     string            `json:"name"`
 	Available                bool              `json:"available"`
-	RecordTypeId             string            `json:"recordTypeId"`
+	RecordTypeID             string            `json:"recordTypeId"`
 	URLs                     map[string]string `json:"urls"`
 	DefaultRecordTypeMapping bool              `json:"defaultRecordTypeMapping"`
 }
@@ -171,70 +173,70 @@ type ChildRelationship struct {
 	RelationshipName    string `json:"relationshipName"`
 }
 
-func (forceApi *ForceApi) getApiResources() error {
-	uri := fmt.Sprintf(resourcesUri, forceApi.apiVersion)
+func (forceAPI *ForceAPI) getResources() error {
+	uri := fmt.Sprintf(resourcesURI, forceAPI.apiVersion)
 
-	return forceApi.Get(uri, nil, &forceApi.apiResources)
+	return forceAPI.Get(uri, nil, &forceAPI.apiResources)
 }
 
-func (forceApi *ForceApi) getApiSObjects() error {
-	uri := forceApi.apiResources[sObjectsKey]
+func (forceAPI *ForceAPI) getSObjects() error {
+	uri := forceAPI.apiResources[sObjectsKey]
 
-	list := &SObjectApiResponse{}
-	err := forceApi.Get(uri, nil, list)
+	list := &SObjectAPIResponse{}
+	err := forceAPI.Get(uri, nil, list)
 	if err != nil {
 		return err
 	}
 
-	forceApi.apiMaxBatchSize = list.MaxBatchSize
+	forceAPI.apiMaxBatchSize = list.MaxBatchSize
 
 	// The API doesn't return the list of sobjects in a map. Convert it.
 	for _, object := range list.SObjects {
-		forceApi.apiSObjects[object.Name] = object
+		forceAPI.apiSObjects[object.Name] = object
 	}
 
 	return nil
 }
 
-func (forceApi *ForceApi) getApiSObjectDescriptions() error {
-	for name, metaData := range forceApi.apiSObjects {
+func (forceAPI *ForceAPI) getAPISObjectDescriptions() error {
+	for name, metaData := range forceAPI.apiSObjects {
 		uri := metaData.URLs[sObjectDescribeKey]
 
 		desc := &SObjectDescription{}
-		err := forceApi.Get(uri, nil, desc)
+		err := forceAPI.Get(uri, nil, desc)
 		if err != nil {
 			return err
 		}
 
-		forceApi.apiSObjectDescriptions[name] = desc
+		forceAPI.apiSObjectDescriptions[name] = desc
 	}
 
 	return nil
 }
 
-func (forceApi *ForceApi) GetInstanceURL() string {
-	return forceApi.oauth.InstanceUrl
+func (forceAPI *ForceAPI) GetInstanceURL() string {
+	return forceAPI.oauth.InstanceUrl
 }
 
-func (forceApi *ForceApi) GetAccessToken() string {
-	return forceApi.oauth.AccessToken
+func (forceAPI *ForceAPI) GetAccessToken() string {
+	return forceAPI.oauth.AccessToken
 }
 
-func (forceApi *ForceApi) RefreshToken() error {
+func (forceAPI *ForceAPI) RefreshToken() error {
 	res := &RefreshTokenResponse{}
 	params := url.Values{
 		"grant_type":    []string{"refresh_token"},
-		"refresh_token": []string{forceApi.oauth.refreshToken},
-		"client_id":     []string{forceApi.oauth.clientId},
-		"client_secret": []string{forceApi.oauth.clientSecret},
+		"refresh_token": []string{forceAPI.oauth.refreshToken},
+		"client_id":     []string{forceAPI.oauth.clientID},
+		"client_secret": []string{forceAPI.oauth.clientSecret},
 	}
 	res.ID = "a test"
 
-	err := forceApi.Post("/services/oauth2/token", params, nil, res)
+	err := forceAPI.Post("/services/oauth2/token", params, nil, res)
 	if err != nil {
 		return err
 	}
 
-	forceApi.oauth.AccessToken = res.AccessToken
+	forceAPI.oauth.AccessToken = res.AccessToken
 	return nil
 }

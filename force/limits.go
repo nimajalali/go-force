@@ -7,11 +7,11 @@ type Limit struct {
 	Max       float64
 }
 
-func (forceApi *ForceApi) GetLimits() (limits *Limits, err error) {
-	uri := forceApi.apiResources[limitsKey]
+func (forceAPI *ForceAPI) GetLimits() (limits *Limits, err error) {
+	uri := forceAPI.apiResources[limitsKey]
 
 	limits = &Limits{}
-	err = forceApi.Get(uri, nil, limits)
+	err = forceAPI.Get(uri, nil, limits)
 
 	return
 }
