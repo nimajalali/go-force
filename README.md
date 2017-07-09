@@ -1,13 +1,13 @@
 go-force
 ======
 
-[![wercker status](https://app.wercker.com/status/66ea433103de60e20ce0f96340a75828/m "wercker status")](https://app.wercker.com/project/bykey/66ea433103de60e20ce0f96340a75828)
+[![wercker status](https://app.wercker.com/status/eab399efa4682d69179ff55748778bd1/s/master "wercker status")](https://app.wercker.com/project/byKey/eab399efa4682d69179ff55748778bd1)
 
 [Golang](http://golang.org/) API wrapper for [Force.com](http://www.force.com/), [Salesforce.com](http://www.salesforce.com/)
 
 Installation
 ============
-	go get github.com/nimajalali/go-force/force
+	go get github.com/goguardian/go-force/force
 
 Example
 ============
@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/nimajalali/go-force/force"
-	"github.com/nimajalali/go-force/sobjects"
+	"github.com/goguardian/go-force/force"
+	"github.com/goguardian/go-force/sobjects"
 )
 
 type SomeCustomSObject struct {
 	sobjects.BaseSObject
-	
+
 	Active    bool   `force:"Active__c"`
 	AccountId string `force:"Account__c"`
 }
@@ -73,8 +73,8 @@ func main() {
 	fmt.Printf("%#v", someCustomSObjects)
 }
 ```
-Documentation 
+Documentation
 =======
 
-* [Package Reference](http://godoc.org/github.com/nimajalali/go-force/force)
+* [Package Reference](http://godoc.org/github.com/goguardian/go-force/force)
 * [Force.com API Reference](http://www.salesforce.com/us/developer/docs/api_rest/)

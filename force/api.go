@@ -2,6 +2,7 @@ package force
 
 import (
 	"fmt"
+	"net/url"
 )
 
 const (
@@ -221,14 +222,15 @@ func (forceApi *ForceApi) GetAccessToken() string {
 
 func (forceApi *ForceApi) RefreshToken() error {
 	res := &RefreshTokenResponse{}
-	payload := map[string]string{
-		"grant_type":    "refresh_token",
-		"refresh_token": forceApi.oauth.refreshToken,
-		"client_id":     forceApi.oauth.clientId,
-		"client_secret": forceApi.oauth.clientSecret,
+	params := url.Values{
+		"grant_type":    []string{"refresh_token"},
+		"refresh_token": []string{forceApi.oauth.refreshToken},
+		"client_id":     []string{forceApi.oauth.clientId},
+		"client_secret": []string{forceApi.oauth.clientSecret},
 	}
+	res.ID = "a test"
 
-	err := forceApi.Post("/services/oauth2/token", nil, payload, res)
+	err := forceApi.Post("/services/oauth2/token", params, nil, res)
 	if err != nil {
 		return err
 	}
