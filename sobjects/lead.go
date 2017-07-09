@@ -12,7 +12,7 @@ type Lead struct {
 	Status        string `force:",omitempty"`
 }
 
-func (t *Lead) ApiName() string {
+func (t *Lead) APIName() string {
 	return "Lead"
 }
 
