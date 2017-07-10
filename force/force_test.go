@@ -3,7 +3,7 @@ package force
 import (
 	"testing"
 
-	"github.com/goguardian/go-force/sobjects"
+	"github.com/nimajalali/go-force/sobjects"
 )
 
 func TestCreateWithAccessToken(t *testing.T) {
