@@ -19,18 +19,16 @@ func BuildQuery(fields, table string, constraints []string) string {
 	return query
 }
 
-// Use the Query resource to execute a SOQL query that returns all the results in a single response,
+// Query uses the Query resource to execute an SOQL query that returns all the results in a single response,
 // or if needed, returns part of the results and an identifier used to retrieve the remaining results.
-func (forceAPI *ForceAPI) Query(query string, out interface{}) (err error) {
+func (forceAPI *ForceAPI) Query(query string, out interface{}) error {
 	uri := forceAPI.apiResources[queryKey]
 
 	params := url.Values{
 		"q": {query},
 	}
 
-	err = forceAPI.Get(uri, params, out)
-
-	return
+	return forceAPI.Get(uri, params, out)
 }
 
 // Use the QueryAll resource to execute a SOQL query that includes information about records that have

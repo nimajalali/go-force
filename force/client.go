@@ -63,7 +63,6 @@ func (forceAPI *ForceAPI) request(method, path string, params url.Values, payloa
 	// Build body
 	var body io.Reader
 	if payload != nil {
-
 		jsonBytes, err := json.Marshal(payload)
 		if err != nil {
 			return fmt.Errorf("Error marshaling encoded payload: %v", err)
