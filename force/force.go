@@ -10,7 +10,7 @@ import (
 
 const (
 	testVersion       = "v36.0"
-	testClientId      = "3MVG9A2kN3Bn17hs8MIaQx1voVGy662rXlC37svtmLmt6wO_iik8Hnk3DlcYjKRvzVNGWLFlGRH1ryHwS217h"
+	testClientID      = "3MVG9A2kN3Bn17hs8MIaQx1voVGy662rXlC37svtmLmt6wO_iik8Hnk3DlcYjKRvzVNGWLFlGRH1ryHwS217h"
 	testClientSecret  = "4165772184959202901"
 	testUserName      = "go-force@jalali.net"
 	testPassword      = "golangrocks3"
@@ -18,10 +18,10 @@ const (
 	testEnvironment   = "production"
 )
 
-func Create(version, clientId, clientSecret, userName, password, securityToken,
-	environment string) (*ForceApi, error) {
+func Create(version, clientID, clientSecret, userName, password, securityToken,
+	environment string) (*ForceAPI, error) {
 	oauth := &forceOauth{
-		clientId:      clientId,
+		clientID:      clientID,
 		clientSecret:  clientSecret,
 		userName:      userName,
 		password:      password,
@@ -29,7 +29,7 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 		environment:   environment,
 	}
 
-	forceApi := &ForceApi{
+	ForceAPI := &ForceAPI{
 		apiResources:           make(map[string]string),
 		apiSObjects:            make(map[string]*SObjectMetaData),
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
@@ -38,32 +38,32 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 	}
 
 	// Init oauth
-	err := forceApi.oauth.Authenticate()
+	err := ForceAPI.oauth.Authenticate()
 	if err != nil {
 		return nil, err
 	}
 
-	// Init Api Resources
-	err = forceApi.getApiResources()
+	// Init API Resources
+	err = ForceAPI.getResources()
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = ForceAPI.getSObjects()
 	if err != nil {
 		return nil, err
 	}
 
-	return forceApi, nil
+	return ForceAPI, nil
 }
 
-func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+func CreateWithAccessToken(version, clientID, accessToken, instanceUrl string) (*ForceAPI, error) {
 	oauth := &forceOauth{
-		clientId:    clientId,
+		clientID:    clientID,
 		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
 	}
 
-	forceApi := &ForceApi{
+	ForceAPI := &ForceAPI{
 		apiResources:           make(map[string]string),
 		apiSObjects:            make(map[string]*SObjectMetaData),
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
@@ -72,31 +72,32 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 	}
 
 	// We need to check for oath correctness here, since we are not generating the token ourselves.
-	if err := forceApi.oauth.Validate(); err != nil {
+	if err := ForceAPI.oauth.Validate(); err != nil {
 		return nil, err
 	}
 
-	// Init Api Resources
-	err := forceApi.getApiResources()
+	// Init API Resources
+	err := ForceAPI.getResources()
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = ForceAPI.getSObjects()
 	if err != nil {
 		return nil, err
 	}
 
-	return forceApi, nil
+	return ForceAPI, nil
 }
 
-func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+func CreateWithRefreshToken(version, clientID, clientSecret, refreshToken, instanceUrl string) (*ForceAPI, error) {
 	oauth := &forceOauth{
-		clientId:    clientId,
-		AccessToken: accessToken,
-		InstanceUrl: instanceUrl,
+		clientID:     clientID,
+		clientSecret: clientSecret,
+		refreshToken: refreshToken,
+		InstanceUrl:  instanceUrl,
 	}
 
-	forceApi := &ForceApi{
+	ForceAPI := &ForceAPI{
 		apiResources:           make(map[string]string),
 		apiSObjects:            make(map[string]*SObjectMetaData),
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
@@ -105,71 +106,71 @@ func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl string) 
 	}
 
 	// obtain access token
-	if err := forceApi.RefreshToken(); err != nil {
+	if err := ForceAPI.RefreshToken(); err != nil {
 		return nil, err
 	}
 
 	// We need to check for oath correctness here, since we are not generating the token ourselves.
-	if err := forceApi.oauth.Validate(); err != nil {
+	if err := ForceAPI.oauth.Validate(); err != nil {
 		return nil, err
 	}
 
-	// Init Api Resources
-	err := forceApi.getApiResources()
+	// Init API Resources
+	err := ForceAPI.getResources()
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = ForceAPI.getSObjects()
 	if err != nil {
 		return nil, err
 	}
 
-	return forceApi, nil
+	return ForceAPI, nil
 }
 
 // Used when running tests.
-func createTest() *ForceApi {
-	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+func createTest() *ForceAPI {
+	ForceAPI, err := Create(testVersion, testClientID, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
 	if err != nil {
-		fmt.Printf("Unable to create ForceApi for test: %v", err)
+		fmt.Printf("Unable to create ForceAPI for test: %v", err)
 		os.Exit(1)
 	}
 
-	return forceApi
+	return ForceAPI
 }
 
-type ForceApiLogger interface {
+type ForceAPILogger interface {
 	Printf(format string, v ...interface{})
 }
 
-// TraceOn turns on logging for this ForceApi. After this is called, all
+// TraceOn turns on logging for this ForceAPI. After this is called, all
 // requests, responses, and raw response bodies will be sent to the logger.
 // If prefix is a non-empty string, it will be written to the front of all
 // logged strings, which can aid in filtering log lines.
 //
-// Use TraceOn if you want to spy on the ForceApi requests and responses.
+// Use TraceOn if you want to spy on the ForceAPI requests and responses.
 //
-// Note that the base log.Logger type satisfies ForceApiLogger, but adapters
+// Note that the base log.Logger type satisfies ForceAPILogger, but adapters
 // can easily be written for other logging packages (e.g., the
 // golang-sanctioned glog framework).
-func (forceApi *ForceApi) TraceOn(prefix string, logger ForceApiLogger) {
-	forceApi.logger = logger
+func (ForceAPI *ForceAPI) TraceOn(prefix string, logger ForceAPILogger) {
+	ForceAPI.logger = logger
 	if prefix == "" {
-		forceApi.logPrefix = prefix
+		ForceAPI.logPrefix = prefix
 	} else {
-		forceApi.logPrefix = fmt.Sprintf("%s ", prefix)
+		ForceAPI.logPrefix = fmt.Sprintf("%s ", prefix)
 	}
 }
 
 // TraceOff turns off tracing. It is idempotent.
-func (forceApi *ForceApi) TraceOff() {
-	forceApi.logger = nil
-	forceApi.logPrefix = ""
+func (ForceAPI *ForceAPI) TraceOff() {
+	ForceAPI.logger = nil
+	ForceAPI.logPrefix = ""
 }
 
-func (forceApi *ForceApi) trace(name string, value interface{}, format string) {
-	if forceApi.logger != nil {
+func (ForceAPI *ForceAPI) trace(name string, value interface{}, format string) {
+	if ForceAPI.logger != nil {
 		logMsg := "%s%s " + format + "\n"
-		forceApi.logger.Printf(logMsg, forceApi.logPrefix, name, value)
+		ForceAPI.logger.Printf(logMsg, ForceAPI.logPrefix, name, value)
 	}
 }

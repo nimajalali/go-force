@@ -20,11 +20,11 @@ const (
 type forceOauth struct {
 	AccessToken string `json:"access_token"`
 	InstanceUrl string `json:"instance_url"`
-	Id          string `json:"id"`
+	ID          string `json:"id"`
 	IssuedAt    string `json:"issued_at"`
 	Signature   string `json:"signature"`
 
-	clientId      string
+	clientID      string
 	clientSecret  string
 	refreshToken  string
 	userName      string
@@ -34,14 +34,15 @@ type forceOauth struct {
 }
 
 func (oauth *forceOauth) Validate() error {
-	if oauth == nil || len(oauth.InstanceUrl) == 0 || len(oauth.AccessToken) == 0 {
+	if oauth == nil || len(oauth.InstanceUrl) == 0 ||
+		(len(oauth.AccessToken) == 0 && len(oauth.refreshToken) == 0) {
 		return fmt.Errorf("Invalid Force Oauth Object: %#v", oauth)
 	}
 
 	return nil
 }
 
-func (oauth *forceOauth) Expired(apiErrors ApiErrors) bool {
+func (oauth *forceOauth) Expired(apiErrors APIErrors) bool {
 	for _, err := range apiErrors {
 		if err.ErrorCode == invalidSessionErrorCode {
 			return true
@@ -54,7 +55,7 @@ func (oauth *forceOauth) Expired(apiErrors ApiErrors) bool {
 func (oauth *forceOauth) Authenticate() error {
 	payload := url.Values{
 		"grant_type":    {grantType},
-		"client_id":     {oauth.clientId},
+		"client_id":     {oauth.clientID},
 		"client_secret": {oauth.clientSecret},
 		"username":      {oauth.userName},
 		"password":      {fmt.Sprintf("%v%v", oauth.password, oauth.securityToken)},
@@ -92,7 +93,7 @@ func (oauth *forceOauth) Authenticate() error {
 	}
 
 	// Attempt to parse response as a force.com api error
-	apiError := &ApiError{}
+	apiError := &APIError{}
 	if err := json.Unmarshal(respBytes, apiError); err == nil {
 		// Check if api error is valid
 		if apiError.Validate() {

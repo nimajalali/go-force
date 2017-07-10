@@ -19,37 +19,35 @@ func BuildQuery(fields, table string, constraints []string) string {
 	return query
 }
 
-// Use the Query resource to execute a SOQL query that returns all the results in a single response,
+// Query uses the Query resource to execute an SOQL query that returns all the results in a single response,
 // or if needed, returns part of the results and an identifier used to retrieve the remaining results.
-func (forceApi *ForceApi) Query(query string, out interface{}) (err error) {
-	uri := forceApi.apiResources[queryKey]
+func (forceAPI *ForceAPI) Query(query string, out interface{}) error {
+	uri := forceAPI.apiResources[queryKey]
 
 	params := url.Values{
 		"q": {query},
 	}
 
-	err = forceApi.Get(uri, params, out)
-
-	return
+	return forceAPI.Get(uri, params, out)
 }
 
 // Use the QueryAll resource to execute a SOQL query that includes information about records that have
 // been deleted because of a merge or delete. Use QueryAll rather than Query, because the Query resource
 // will automatically filter out items that have been deleted.
-func (forceApi *ForceApi) QueryAll(query string, out interface{}) (err error) {
-	uri := forceApi.apiResources[queryAllKey]
+func (forceAPI *ForceAPI) QueryAll(query string, out interface{}) (err error) {
+	uri := forceAPI.apiResources[queryAllKey]
 
 	params := url.Values{
 		"q": {query},
 	}
 
-	err = forceApi.Get(uri, params, out)
+	err = forceAPI.Get(uri, params, out)
 
 	return
 }
 
-func (forceApi *ForceApi) QueryNext(uri string, out interface{}) (err error) {
-	err = forceApi.Get(uri, nil, out)
+func (forceAPI *ForceAPI) QueryNext(uri string, out interface{}) (err error) {
+	err = forceAPI.Get(uri, nil, out)
 
 	return
 }

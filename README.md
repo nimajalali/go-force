@@ -24,7 +24,7 @@ import (
 
 type SomeCustomSObject struct {
 	sobjects.BaseSObject
-	
+
 	Active    bool   `force:"Active__c"`
 	AccountId string `force:"Account__c"`
 }
@@ -73,7 +73,7 @@ func main() {
 	fmt.Printf("%#v", someCustomSObjects)
 }
 ```
-Documentation 
+Documentation
 =======
 
 * [Package Reference](http://godoc.org/github.com/nimajalali/go-force/force)
