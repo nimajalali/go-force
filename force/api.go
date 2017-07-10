@@ -8,6 +8,7 @@ import (
 const (
 	limitsKey          = "limits"
 	queryKey           = "query"
+	searchKey          = "search"
 	queryAllKey        = "queryAll"
 	sObjectsKey        = "sobjects"
 	sObjectKey         = "sobject"
