@@ -236,3 +236,12 @@ func (forceApi *ForceApi) RefreshToken() error {
 	forceApi.oauth.AccessToken = res.AccessToken
 	return nil
 }
+
+func (forceApi *ForceApi) HasAccess(objectNames []string) bool {
+	for _, name := range objectNames {
+		if _, ok := forceApi.apiSObjects[name]; !ok {
+			return false
+		}
+	}
+	return true
+}
