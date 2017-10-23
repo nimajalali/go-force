@@ -1,0 +1,20 @@
+dist: trusty
+sudo: true
+
+language: go
+go:
+  - 1.9
+
+branches:
+  only:
+    - master
+
+stages:
+  - test
+
+jobs:
+  include:
+    - stage: test
+      script:
+      - go test ./force
+      - go test ./forcejson
