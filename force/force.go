@@ -77,12 +77,7 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 	}
 
 	// Init Api Resources
-	err := forceApi.getApiResources()
-	if err != nil {
-		return nil, err
-	}
-	err = forceApi.getApiSObjects()
-	if err != nil {
+	if err := forceApi.ResetResources(); err != nil {
 		return nil, err
 	}
 
@@ -115,12 +110,7 @@ func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl string) 
 	}
 
 	// Init Api Resources
-	err := forceApi.getApiResources()
-	if err != nil {
-		return nil, err
-	}
-	err = forceApi.getApiSObjects()
-	if err != nil {
+	if err := forceApi.ResetResources(); err != nil {
 		return nil, err
 	}
 
@@ -136,6 +126,19 @@ func createTest() *ForceApi {
 	}
 
 	return forceApi
+}
+
+func (forceApi *ForceApi) ResetResources() error {
+	err := forceApi.getApiResources()
+	if err != nil {
+		return err
+	}
+	err = forceApi.getApiSObjects()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type ForceApiLogger interface {
