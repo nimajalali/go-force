@@ -9,8 +9,8 @@ import (
 
 // Interface all standard and custom objects must implement. Needed for uri generation.
 type SObject interface {
-	ApiName() string
-	ExternalIdApiName() string
+	APIName() string
+	ExternalIdAPIName() string
 }
 
 // Response received from force.com API after insert of an sobject.
@@ -29,12 +29,12 @@ func (forceAPI *ForceApi) DescribeSObjects() (map[string]*SObjectMetaData, error
 
 func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription, err error) {
 	// Check cache
-	resp, ok := forceApi.apiSObjectDescriptions[in.ApiName()]
+	resp, ok := forceApi.apiSObjectDescriptions[in.APIName()]
 	if !ok {
 		// Attempt retrieval from api
-		sObjectMetaData, ok := forceApi.apiSObjects[in.ApiName()]
+		sObjectMetaData, ok := forceApi.apiSObjects[in.APIName()]
 		if !ok {
-			err = fmt.Errorf("Unable to find metadata for object: %v", in.ApiName())
+			err = fmt.Errorf("Unable to find metadata for object: %v", in.APIName())
 			return
 		}
 
@@ -64,14 +64,14 @@ func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription,
 			resp.AllFields = allFields.String()
 		}
 
-		forceApi.apiSObjectDescriptions[in.ApiName()] = resp
+		forceApi.apiSObjectDescriptions[in.APIName()] = resp
 	}
 
 	return
 }
 
 func (forceApi *ForceApi) GetSObject(id string, fields []string, out SObject) (err error) {
-	uri := strings.Replace(forceApi.apiSObjects[out.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
+	uri := strings.Replace(forceApi.apiSObjects[out.APIName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	params := url.Values{}
 	if len(fields) > 0 {
@@ -84,7 +84,7 @@ func (forceApi *ForceApi) GetSObject(id string, fields []string, out SObject) (e
 }
 
 func (forceApi *ForceApi) InsertSObject(in SObject) (resp *SObjectResponse, err error) {
-	uri := forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey]
+	uri := forceApi.apiSObjects[in.APIName()].URLs[sObjectKey]
 
 	resp = &SObjectResponse{}
 	err = forceApi.Post(uri, nil, in.(interface{}), resp)
@@ -93,7 +93,7 @@ func (forceApi *ForceApi) InsertSObject(in SObject) (resp *SObjectResponse, err 
 }
 
 func (forceApi *ForceApi) UpdateSObject(id string, in SObject) (err error) {
-	uri := strings.Replace(forceApi.apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
+	uri := strings.Replace(forceApi.apiSObjects[in.APIName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	err = forceApi.Patch(uri, nil, in.(interface{}), nil)
 
@@ -101,7 +101,7 @@ func (forceApi *ForceApi) UpdateSObject(id string, in SObject) (err error) {
 }
 
 func (forceApi *ForceApi) DeleteSObject(id string, in SObject) (err error) {
-	uri := strings.Replace(forceApi.apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
+	uri := strings.Replace(forceApi.apiSObjects[in.APIName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	err = forceApi.Delete(uri, nil)
 
@@ -109,8 +109,8 @@ func (forceApi *ForceApi) DeleteSObject(id string, in SObject) (err error) {
 }
 
 func (forceApi *ForceApi) GetSObjectByExternalId(id string, fields []string, out SObject) (err error) {
-	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[out.ApiName()].URLs[sObjectKey],
-		out.ExternalIdApiName(), id)
+	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[out.APIName()].URLs[sObjectKey],
+		out.ExternalIdAPIName(), id)
 
 	params := url.Values{}
 	if len(fields) > 0 {
@@ -123,8 +123,8 @@ func (forceApi *ForceApi) GetSObjectByExternalId(id string, fields []string, out
 }
 
 func (forceApi *ForceApi) UpsertSObjectByExternalId(id string, in SObject) (resp *SObjectResponse, err error) {
-	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey],
-		in.ExternalIdApiName(), id)
+	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[in.APIName()].URLs[sObjectKey],
+		in.ExternalIdAPIName(), id)
 
 	resp = &SObjectResponse{}
 	err = forceApi.Patch(uri, nil, in.(interface{}), resp)
@@ -133,8 +133,8 @@ func (forceApi *ForceApi) UpsertSObjectByExternalId(id string, in SObject) (resp
 }
 
 func (forceApi *ForceApi) DeleteSObjectByExternalId(id string, in SObject) (err error) {
-	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey],
-		in.ExternalIdApiName(), id)
+	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[in.APIName()].URLs[sObjectKey],
+		in.ExternalIdAPIName(), id)
 
 	err = forceApi.Delete(uri, nil)
 

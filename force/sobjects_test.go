@@ -19,7 +19,7 @@ type CustomSObject struct {
 	AccountId string `force:"Account__c"`
 }
 
-func (t *CustomSObject) ApiName() string {
+func (t *CustomSObject) APIName() string {
 	return "CustomObject__c"
 }
 
