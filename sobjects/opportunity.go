@@ -17,7 +17,7 @@ type Opportunity struct {
 	StageName       string  `force:",omitempty"`
 }
 
-func (t *Opportunity) ApiName() string {
+func (t *Opportunity) APIName() string {
 	return "Opportunity"
 }
 
