@@ -78,7 +78,7 @@ func (oauth *forceOauth) Authenticate() error {
 	_, _ = body.Seek(0, 0)
 
 	if err != nil {
-		return fmt.Errorf("Error creating authenitcation request: %v", err)
+		return fmt.Errorf("Error creating authentication request: %v", err)
 	}
 
 	// Add Headers

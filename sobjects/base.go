@@ -55,7 +55,7 @@ type BaseQuery struct {
 	NextRecordsUri string  `json:"NextRecordsUrl" force:"nextRecordsUrl"`
 }
 
-// ConvertFieldNames takes in any interface that implements SObject and a comma seperated list of json field names.
+// ConvertFieldNames takes in any interface that inplements SObject and a comma separated list of json field names.
 // It converts the json field names to the force struct tag stated equivalent.
 func ConvertFieldNames(obj interface{}, jsonFields string) string {
 	if jsonFields != "" {
