@@ -40,7 +40,7 @@ type SObjectAttributes struct {
 
 // Implementing this here because most objects don't have an external id and as such this is not needed.
 // Feel free to override this function when embedding the BaseSObject in other structs.
-func (b BaseSObject) ExternalIdApiName() string {
+func (b BaseSObject) ExternalIDAPIName() string {
 	return ""
 }
 

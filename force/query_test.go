@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/nimajalali/go-force/sobjects"
+	"github.com/simplesurance/go-force/sobjects"
 )
 
 const (
@@ -17,14 +17,14 @@ type AccountQueryResponse struct {
 }
 
 func TestQuery(t *testing.T) {
-	forceApi := createTest()
-	desc, err := forceApi.DescribeSObject(&sobjects.Account{})
+	forceAPI := createTest()
+	desc, err := forceAPI.DescribeSObject(&sobjects.Account{})
 	if err != nil {
 		t.Fatalf("Failed to retrieve description of sobject: %v", err)
 	}
 
 	list := &AccountQueryResponse{}
-	err = forceApi.Query(BuildQuery(desc.AllFields, desc.Name, nil), list)
+	err = forceAPI.Query(BuildQuery(desc.AllFields, desc.Name, nil), nil,  list)
 	if err != nil {
 		t.Fatalf("Failed to query: %v", err)
 	}
@@ -33,19 +33,19 @@ func TestQuery(t *testing.T) {
 }
 
 func TestQueryAll(t *testing.T) {
-	forceApi := createTest()
+	forceAPI := createTest()
 	// First Insert and Delete an Account
-	newId := insertSObject(forceApi, t)
-	deleteSObject(forceApi, t, newId)
+	newID := insertSObject(forceAPI, t)
+	deleteSObject(forceAPI, t, newID)
 
 	// Then look for it.
-	desc, err := forceApi.DescribeSObject(&sobjects.Account{})
+	desc, err := forceAPI.DescribeSObject(&sobjects.Account{})
 	if err != nil {
 		t.Fatalf("Failed to retrieve description of sobject: %v", err)
 	}
 
 	list := &AccountQueryResponse{}
-	err = forceApi.QueryAll(fmt.Sprintf(queryAll, desc.AllFields, newId), list)
+	err = forceAPI.QueryAll(fmt.Sprintf(queryAll, desc.AllFields, newID), list)
 	if err != nil {
 		t.Fatalf("Failed to queryAll: %v", err)
 	}

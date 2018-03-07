@@ -5,21 +5,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nimajalali/go-force/sobjects"
+	"github.com/simplesurance/go-force/sobjects"
 )
 
 const (
-	AccountId      = "001i000000RxW18"
-	CustomObjectId = "a00i0000009SPer"
+	AccountID      = "001i000000RxW18"
+	CustomObjectID = "a00i0000009SPer"
 )
 
 type CustomSObject struct {
 	sobjects.BaseSObject
 	Active    bool   `force:"Active__c"`
-	AccountId string `force:"Account__c"`
+	AccountID string `force:"Account__c"`
 }
 
-func (t *CustomSObject) ApiName() string {
+func (t *CustomSObject) APIName() string {
 	return "CustomObject__c"
 }
 
@@ -33,10 +33,10 @@ func TestDescribeSobjects(t *testing.T) {
 }
 
 func TestDescribeSObject(t *testing.T) {
-	forceApi := createTest()
+	forceAPI := createTest()
 	acc := &sobjects.Account{}
 
-	desc, err := forceApi.DescribeSObject(acc)
+	desc, err := forceAPI.DescribeSObject(acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Description for Account SObject: %v", err)
 	}
@@ -45,11 +45,11 @@ func TestDescribeSObject(t *testing.T) {
 }
 
 func TestGetSObject(t *testing.T) {
-	forceApi := createTest()
+	forceAPI := createTest()
 	// Test Standard Object
 	acc := &sobjects.Account{}
 
-	err := forceApi.GetSObject(AccountId, nil, acc)
+	err := forceAPI.GetSObject(AccountID, nil, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestGetSObject(t *testing.T) {
 	// Test Custom Object
 	customObject := &CustomSObject{}
 
-	err = forceApi.GetSObject(CustomObjectId, nil, customObject)
+	err = forceAPI.GetSObject(CustomObjectID, nil, customObject)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject CustomObject: %v", err)
 	}
@@ -71,16 +71,16 @@ func TestGetSObject(t *testing.T) {
 
 	accFields := &sobjects.Account{}
 
-	err = forceApi.GetSObject(AccountId, fields, accFields)
+	err = forceAPI.GetSObject(AccountID, fields, accFields)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account fields: %v", err)
 	}
 
-	t.Logf("SObject Account Name and Id Retrieved: %+v", accFields)
+	t.Logf("SObject Account Name and ID Retrieved: %+v", accFields)
 }
 
 func TestUpdateSObject(t *testing.T) {
-	forceApi := createTest()
+	forceAPI := createTest()
 	// Need some random text for updating a field.
 	rand.Seed(time.Now().UTC().UnixNano())
 	someText := randomString(10)
@@ -89,13 +89,13 @@ func TestUpdateSObject(t *testing.T) {
 	acc := &sobjects.Account{}
 	acc.Name = someText
 
-	err := forceApi.UpdateSObject(AccountId, acc)
+	err := forceAPI.UpdateSObject(AccountID, acc)
 	if err != nil {
 		t.Fatalf("Cannot update SObject Account: %v", err)
 	}
 
 	// Read back and verify
-	err = forceApi.GetSObject(AccountId, nil, acc)
+	err = forceAPI.GetSObject(AccountID, nil, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -108,12 +108,12 @@ func TestUpdateSObject(t *testing.T) {
 }
 
 func TestInsertDeleteSObject(t *testing.T) {
-	forceApi := createTest()
-	objectId := insertSObject(forceApi, t)
-	deleteSObject(forceApi, t, objectId)
+	forceAPI := createTest()
+	objectID := insertSObject(forceAPI, t)
+	deleteSObject(forceAPI, t, objectID)
 }
 
-func insertSObject(forceApi *ForceApi, t *testing.T) string {
+func insertSObject(forceAPI *API, t *testing.T) string {
 	// Need some random text for name field.
 	rand.Seed(time.Now().UTC().UnixNano())
 	someText := randomString(10)
@@ -122,29 +122,29 @@ func insertSObject(forceApi *ForceApi, t *testing.T) string {
 	acc := &sobjects.Account{}
 	acc.Name = someText
 
-	resp, err := forceApi.InsertSObject(acc)
+	resp, err := forceAPI.InsertSObject(acc)
 	if err != nil {
 		t.Fatalf("Insert SObject Account failed: %v", err)
 	}
 
-	if len(resp.Id) == 0 {
-		t.Fatalf("Insert SObject Account failed to return Id: %+v", resp)
+	if len(resp.ID) == 0 {
+		t.Fatalf("Insert SObject Account failed to return ID: %+v", resp)
 	}
 
-	return resp.Id
+	return resp.ID
 }
 
-func deleteSObject(forceApi *ForceApi, t *testing.T, id string) {
+func deleteSObject(forceAPI *API, t *testing.T, id string) {
 	// Test Standard Object
 	acc := &sobjects.Account{}
 
-	err := forceApi.DeleteSObject(id, acc)
+	err := forceAPI.DeleteSObject(id, acc)
 	if err != nil {
 		t.Fatalf("Delete SObject Account failed: %v", err)
 	}
 
 	// Read back and verify
-	err = forceApi.GetSObject(id, nil, acc)
+	err = forceAPI.GetSObject(id, nil, acc)
 	if err == nil {
 		t.Fatalf("Delete SObject Account failed, was able to retrieve deleted object: %+v", acc)
 	}

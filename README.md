@@ -7,7 +7,7 @@ go-force
 
 Installation
 ============
-	go get github.com/nimajalali/go-force/force
+	go get github.com/simplesurance/go-force/force
 
 Example
 ============
@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/nimajalali/go-force/force"
-	"github.com/nimajalali/go-force/sobjects"
+	"github.com/simplesurance/go-force/force"
+	"github.com/simplesurance/go-force/sobjects"
 )
 
 type SomeCustomSObject struct {
@@ -76,5 +76,5 @@ func main() {
 Documentation 
 =======
 
-* [Package Reference](http://godoc.org/github.com/nimajalali/go-force/force)
+* [Package Reference](http://godoc.org/github.com/simplesurance/go-force/force)
 * [Force.com API Reference](http://www.salesforce.com/us/developer/docs/api_rest/)

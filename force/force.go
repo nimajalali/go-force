@@ -1,4 +1,4 @@
-// A Go package that provides bindings to the force.com REST API
+// Package force provides bindings to the force.com REST API
 //
 // See http://www.salesforce.com/us/developer/docs/api_rest/
 package force
@@ -10,7 +10,7 @@ import (
 
 const (
 	testVersion       = "v36.0"
-	testClientId      = "3MVG9A2kN3Bn17hs8MIaQx1voVGy662rXlC37svtmLmt6wO_iik8Hnk3DlcYjKRvzVNGWLFlGRH1ryHwS217h"
+	testClientID      = "3MVG9A2kN3Bn17hs8MIaQx1voVGy662rXlC37svtmLmt6wO_iik8Hnk3DlcYjKRvzVNGWLFlGRH1ryHwS217h"
 	testClientSecret  = "4165772184959202901"
 	testUserName      = "go-force@jalali.net"
 	testPassword      = "golangrocks3"
@@ -18,10 +18,24 @@ const (
 	testEnvironment   = "production"
 )
 
-func Create(version, clientId, clientSecret, userName, password, securityToken,
-	environment string) (*ForceApi, error) {
+var requestedObjMetadata = make(map[string]struct{})
+
+// setRequestedObjectMetadata set the list of SObjects
+// for which metadata have to be fetched.
+func setRequestedObjectMetadata(list []string) {
+	if list == nil {
+		return
+	}
+	for _, obj := range list {
+		requestedObjMetadata[obj] = struct{}{}
+	}
+}
+
+// Create initialises a new SalesForce API client.
+func Create(version, clientID, clientSecret, userName, password, securityToken,
+	environment string, requiredObj []string) (*API, error) {
 	oauth := &forceOauth{
-		clientId:      clientId,
+		clientID:      clientID,
 		clientSecret:  clientSecret,
 		userName:      userName,
 		password:      password,
@@ -29,147 +43,159 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 		environment:   environment,
 	}
 
-	forceApi := &ForceApi{
+	setRequestedObjectMetadata(requiredObj)
+
+	forceAPI := &API{
 		apiResources:           make(map[string]string),
 		apiSObjects:            make(map[string]*SObjectMetaData),
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		oauth:                  oauth,
+		openJobMap:             make(map[string]SJob),
 	}
 
 	// Init oauth
-	err := forceApi.oauth.Authenticate()
+	err := forceAPI.oauth.Authenticate()
 	if err != nil {
 		return nil, err
 	}
 
 	// Init Api Resources
-	err = forceApi.getApiResources()
+	err = forceAPI.getAPIResources()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot get API resources: %s", err)
 	}
-	err = forceApi.getApiSObjects()
+	err = forceAPI.getAPISObjects()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot get SObjects: %s", err)
+	}
+	err = forceAPI.getAPISObjectDescriptions()
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get SObject descriptions: %s", err)
 	}
 
-	return forceApi, nil
+	return forceAPI, nil
 }
 
-func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+// CreateWithAccessToken initialises a new SalesForce API client with an access token.
+func CreateWithAccessToken(version, clientID, accessToken, instanceURL string) (*API, error) {
 	oauth := &forceOauth{
-		clientId:    clientId,
+		clientID:    clientID,
 		AccessToken: accessToken,
-		InstanceUrl: instanceUrl,
+		InstanceURL: instanceURL,
 	}
 
-	forceApi := &ForceApi{
+	forceAPI := &API{
 		apiResources:           make(map[string]string),
 		apiSObjects:            make(map[string]*SObjectMetaData),
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		oauth:                  oauth,
+		openJobMap:             make(map[string]SJob),
 	}
 
 	// We need to check for oath correctness here, since we are not generating the token ourselves.
-	if err := forceApi.oauth.Validate(); err != nil {
+	if err := forceAPI.oauth.Validate(); err != nil {
 		return nil, err
 	}
 
 	// Init Api Resources
-	err := forceApi.getApiResources()
+	err := forceAPI.getAPIResources()
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = forceAPI.getAPISObjects()
 	if err != nil {
 		return nil, err
 	}
 
-	return forceApi, nil
+	return forceAPI, nil
 }
 
-func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+// CreateWithRefreshToken initialises a new SalesForce API client with a refresh token.
+func CreateWithRefreshToken(version, clientID, accessToken, instanceURL string) (*API, error) {
 	oauth := &forceOauth{
-		clientId:    clientId,
+		clientID:    clientID,
 		AccessToken: accessToken,
-		InstanceUrl: instanceUrl,
+		InstanceURL: instanceURL,
 	}
 
-	forceApi := &ForceApi{
+	forceAPI := &API{
 		apiResources:           make(map[string]string),
 		apiSObjects:            make(map[string]*SObjectMetaData),
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		oauth:                  oauth,
+		openJobMap:             make(map[string]SJob),
 	}
 
 	// obtain access token
-	if err := forceApi.RefreshToken(); err != nil {
+	if err := forceAPI.RefreshToken(); err != nil {
 		return nil, err
 	}
 
 	// We need to check for oath correctness here, since we are not generating the token ourselves.
-	if err := forceApi.oauth.Validate(); err != nil {
+	if err := forceAPI.oauth.Validate(); err != nil {
 		return nil, err
 	}
 
 	// Init Api Resources
-	err := forceApi.getApiResources()
+	err := forceAPI.getAPIResources()
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = forceAPI.getAPISObjects()
 	if err != nil {
 		return nil, err
 	}
 
-	return forceApi, nil
+	return forceAPI, nil
 }
 
 // Used when running tests.
-func createTest() *ForceApi {
-	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+func createTest() *API {
+	forceAPI, err := Create(testVersion, testClientID, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, nil)
 	if err != nil {
-		fmt.Printf("Unable to create ForceApi for test: %v", err)
+		fmt.Printf("Unable to create API for test: %v", err)
 		os.Exit(1)
 	}
 
-	return forceApi
+	return forceAPI
 }
 
-type ForceApiLogger interface {
+// APILogger describes an API logger.
+type APILogger interface {
 	Printf(format string, v ...interface{})
 }
 
-// TraceOn turns on logging for this ForceApi. After this is called, all
+// TraceOn turns on logging for this API. After this is called, all
 // requests, responses, and raw response bodies will be sent to the logger.
 // If prefix is a non-empty string, it will be written to the front of all
 // logged strings, which can aid in filtering log lines.
 //
-// Use TraceOn if you want to spy on the ForceApi requests and responses.
+// Use TraceOn if you want to spy on the API requests and responses.
 //
-// Note that the base log.Logger type satisfies ForceApiLogger, but adapters
+// Note that the base log.Logger type satisfies APILogger, but adapters
 // can easily be written for other logging packages (e.g., the
 // golang-sanctioned glog framework).
-func (forceApi *ForceApi) TraceOn(prefix string, logger ForceApiLogger) {
-	forceApi.logger = logger
+func (forceAPI *API) TraceOn(prefix string, logger APILogger) {
+	forceAPI.logger = logger
 	if prefix == "" {
-		forceApi.logPrefix = prefix
+		forceAPI.logPrefix = prefix
 	} else {
-		forceApi.logPrefix = fmt.Sprintf("%s ", prefix)
+		forceAPI.logPrefix = fmt.Sprintf("%s ", prefix)
 	}
 }
 
 // TraceOff turns off tracing. It is idempotent.
-func (forceApi *ForceApi) TraceOff() {
-	forceApi.logger = nil
-	forceApi.logPrefix = ""
+func (forceAPI *API) TraceOff() {
+	forceAPI.logger = nil
+	forceAPI.logPrefix = ""
 }
 
-func (forceApi *ForceApi) trace(name string, value interface{}, format string) {
-	if forceApi.logger != nil {
+func (forceAPI *API) trace(name string, value interface{}, format string) {
+	if forceAPI.logger != nil {
 		logMsg := "%s%s " + format + "\n"
-		forceApi.logger.Printf(logMsg, forceApi.logPrefix, name, value)
+		forceAPI.logger.Printf(logMsg, forceAPI.logPrefix, name, value)
 	}
 }
