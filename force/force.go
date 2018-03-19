@@ -107,25 +107,6 @@ func CreateWithRefreshToken(version, clientId, clientSecret, refreshToken, envir
 
 	// Init oauth
 	if err := forceApi.oauth.AuthenticateWithRefreshToken(); err != nil {
-
-func CreateWithRefreshToken(version, clientId, clientSecret, refreshToken, environment string) (*ForceApi, error) {
-	oauth := &forceOauth{
-		clientId:    clientId,
-		clientSecret: clientSecret,
-		refreshToken: refreshToken,
-		environment: environment,
-	}
-
-	forceApi := &ForceApi{
-		apiResources:           make(map[string]string),
-		apiSObjects:            make(map[string]*SObjectMetaData),
-		apiSObjectDescriptions: make(map[string]*SObjectDescription),
-		apiVersion:             version,
-		oauth:                  oauth,
-	}
-
-	// Init oauth
-	if err := forceApi.oauth.AuthenticateWithRefreshToken(); err != nil {
 		return nil, err
 	}
 
