@@ -31,6 +31,7 @@ type forceOauth struct {
 	password      string
 	securityToken string
 	environment   string
+	HttpClient    *http.Client // add httpClient to support socks proxy
 }
 
 func (oauth *forceOauth) Validate() error {
@@ -80,7 +81,14 @@ func (oauth *forceOauth) Authenticate() error {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", responseType)
 
-	resp, err := http.DefaultClient.Do(req)
+	// Check for a new *http.Client and use the default if it doesn't exist
+	var client *http.Client
+	if oauth.HttpClient != nil {
+		client = oauth.HttpClient
+	} else {
+		client = http.DefaultClient
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error sending authentication request: %v", err)
 	}

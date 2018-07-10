@@ -5,6 +5,7 @@ package force
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 )
 
@@ -18,6 +19,9 @@ const (
 	testEnvironment   = "production"
 )
 
+// HttpClient is an externally accessible global variable to hold the http client
+var HttpClient *http.Client = http.DefaultClient
+
 func Create(version, clientId, clientSecret, userName, password, securityToken,
 	environment string) (*ForceApi, error) {
 	oauth := &forceOauth{
@@ -27,6 +31,7 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 		password:      password,
 		securityToken: securityToken,
 		environment:   environment,
+		HttpClient:    HttpClient, // pass it into the oauth struct
 	}
 
 	forceApi := &ForceApi{
@@ -61,6 +66,7 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 		clientId:    clientId,
 		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
+		HttpClient:  HttpClient, // pass it into the oauth struct
 	}
 
 	forceApi := &ForceApi{

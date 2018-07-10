@@ -2,11 +2,13 @@ package force
 
 import (
 	"github.com/nimajalali/go-force/sobjects"
+	"net/http"
 	"testing"
 )
 
 func TestCreateWithAccessToken(t *testing.T) {
 
+	var HttpClient *http.Client = http.DefaultClient
 	// Manually grab an OAuth token, so that we can pass it into CreateWithAccessToken
 	oauth := &forceOauth{
 		clientId:      testClientId,
@@ -15,6 +17,7 @@ func TestCreateWithAccessToken(t *testing.T) {
 		password:      testPassword,
 		securityToken: testSecurityToken,
 		environment:   testEnvironment,
+		HttpClient:    HttpClient,
 	}
 
 	forceApi := &ForceApi{
