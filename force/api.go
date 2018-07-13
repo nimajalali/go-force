@@ -94,7 +94,7 @@ type SObjectDescription struct {
 	Listviewable        bool                 `json:"listviewable"`
 	DeprecatedAndHidden bool                 `json:"deprecatedAndHidden"`
 	RecordTypeInfos     []*RecordTypeInfo    `json:"recordTypeInfos"`
-	ChildRelationsips   []*ChildRelationship `json:"childRelationships"`
+	ChildRelationships  []*ChildRelationship `json:"childRelationships"`
 
 	AllFields string `json:"-"` // Not from force.com API. Used to generate SELECT * queries.
 }
