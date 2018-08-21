@@ -16,10 +16,11 @@ const (
 	testPassword      = "golangrocks3"
 	testSecurityToken = "kAlicVmti9nWRKRiWG3Zvqtte"
 	testEnvironment   = "production"
+	testLoginUri      = "https://login.salesforce.com/services/oauth2/token"
 )
 
 func Create(version, clientId, clientSecret, userName, password, securityToken,
-	environment string) (*ForceApi, error) {
+	environment, loginUri string) (*ForceApi, error) {
 	oauth := &forceOauth{
 		clientId:      clientId,
 		clientSecret:  clientSecret,
@@ -27,6 +28,7 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 		password:      password,
 		securityToken: securityToken,
 		environment:   environment,
+		loginUri:      loginUri,
 	}
 
 	forceApi := &ForceApi{
@@ -56,11 +58,12 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 	return forceApi, nil
 }
 
-func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+func CreateWithAccessToken(version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
 	oauth := &forceOauth{
 		clientId:    clientId,
 		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
+		loginUri:    loginUri,
 	}
 
 	forceApi := &ForceApi{
@@ -89,11 +92,12 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl string) (
 	return forceApi, nil
 }
 
-func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl string) (*ForceApi, error) {
+func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
 	oauth := &forceOauth{
 		clientId:    clientId,
 		AccessToken: accessToken,
 		InstanceUrl: instanceUrl,
+		loginUri:    loginUri,
 	}
 
 	forceApi := &ForceApi{
@@ -129,7 +133,7 @@ func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl string) 
 
 // Used when running tests.
 func createTest() *ForceApi {
-	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment)
+	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, testLoginUri)
 	if err != nil {
 		fmt.Printf("Unable to create ForceApi for test: %v", err)
 		os.Exit(1)

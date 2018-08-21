@@ -11,8 +11,6 @@ import (
 
 const (
 	grantType    = "password"
-	loginUri     = "https://login.salesforce.com/services/oauth2/token"
-	testLoginUri = "https://test.salesforce.com/services/oauth2/token"
 
 	invalidSessionErrorCode = "INVALID_SESSION_ID"
 )
@@ -31,6 +29,7 @@ type forceOauth struct {
 	password      string
 	securityToken string
 	environment   string
+	loginUri      string
 }
 
 func (oauth *forceOauth) Validate() error {
@@ -60,17 +59,11 @@ func (oauth *forceOauth) Authenticate() error {
 		"password":      {fmt.Sprintf("%v%v", oauth.password, oauth.securityToken)},
 	}
 
-	// Build Uri
-	uri := loginUri
-	if oauth.environment == "sandbox" {
-		uri = testLoginUri
-	}
-
 	// Build Body
 	body := strings.NewReader(payload.Encode())
 
 	// Build Request
-	req, err := http.NewRequest("POST", uri, body)
+	req, err := http.NewRequest("POST", oauth.loginUri, body)
 	if err != nil {
 		return fmt.Errorf("Error creating authentication request: %v", err)
 	}
