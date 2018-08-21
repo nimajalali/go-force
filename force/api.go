@@ -27,6 +27,7 @@ type ForceApi struct {
 	apiMaxBatchSize        int64
 	logger                 ForceApiLogger
 	logPrefix              string
+	disableForceAutoAssign bool
 }
 
 type RefreshTokenResponse struct {
@@ -217,6 +218,10 @@ func (forceApi *ForceApi) GetInstanceURL() string {
 
 func (forceApi *ForceApi) GetAccessToken() string {
 	return forceApi.oauth.AccessToken
+}
+
+func (forceApi *ForceApi) SetDisableForceAutoAssign(value bool) {
+	forceApi.disableForceAutoAssign = value
 }
 
 func (forceApi *ForceApi) RefreshToken() error {
