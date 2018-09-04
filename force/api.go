@@ -11,6 +11,7 @@ const (
 	sObjectsKey        = "sobjects"
 	sObjectKey         = "sobject"
 	sObjectDescribeKey = "describe"
+	compositeKey       = "composite"
 
 	rowTemplateKey = "rowTemplate"
 	idKey          = "{ID}"
