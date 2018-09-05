@@ -1,7 +1,9 @@
 package force
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 )
 
 const (
@@ -235,5 +237,30 @@ func (forceApi *ForceApi) RefreshToken() error {
 	}
 
 	forceApi.oauth.AccessToken = res.AccessToken
+	return nil
+}
+
+//SetAPIResources populates the forceApi.apiResources
+func (forceApi *ForceApi) SetAPIResources(src io.Reader) error {
+	dec := json.NewDecoder(src)
+	return dec.Decode(&forceApi.apiResources)
+}
+
+//SetAPISObjects populates forceAPi.apiSObjects manually
+func (forceApi *ForceApi) SetAPISObjects(src io.Reader) error {
+
+	dec := json.NewDecoder(src)
+	list := &SObjectApiResponse{}
+	err := dec.Decode(list)
+	if err != nil {
+		return err
+	}
+
+	forceApi.apiMaxBatchSize = list.MaxBatchSize
+
+	for _, object := range list.SObjects {
+		forceApi.apiSObjects[object.Name] = object
+	}
+
 	return nil
 }
