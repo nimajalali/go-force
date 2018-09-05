@@ -2,6 +2,7 @@ package force
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -242,6 +243,9 @@ func (forceApi *ForceApi) RefreshToken() error {
 
 //SetAPIResources populates the forceApi.apiResources
 func (forceApi *ForceApi) SetAPIResources(src io.Reader) error {
+	if src == nil {
+		return errors.New("io.Reader is nil")
+	}
 	dec := json.NewDecoder(src)
 	return dec.Decode(&forceApi.apiResources)
 }
@@ -249,6 +253,9 @@ func (forceApi *ForceApi) SetAPIResources(src io.Reader) error {
 //SetAPISObjects populates forceAPi.apiSObjects manually
 func (forceApi *ForceApi) SetAPISObjects(src io.Reader) error {
 
+	if src == nil {
+		return errors.New("io.Reader is nil")
+	}
 	dec := json.NewDecoder(src)
 	list := &SObjectApiResponse{}
 	err := dec.Decode(list)
