@@ -1,5 +1,12 @@
 package force
 
+import (
+	"bytes"
+	"net/http"
+	"net/url"
+	"strings"
+)
+
 //CompositeRequests is a struct that contains all requests to be executed
 //AllOrNone reverts all requests if a single request fails
 type CompositeRequests struct {
@@ -44,4 +51,87 @@ func (forceApi *ForceApi) PostCompositeRequests(in *CompositeRequests) (resp *Co
 func (requests *CompositeRequests) Add(request *CompositeRequest) {
 	requests.CompositeRequest = append(requests.CompositeRequest, *request)
 	return
+}
+
+//CompositeQuery generates a CompositeRequest in the format of a Query
+func (forceApi *ForceApi) CompositeQuery(query string, referenceID string) *CompositeRequest {
+	path := forceApi.apiResources[queryKey]
+
+	params := url.Values{
+		"q": {query},
+	}
+
+	var uri bytes.Buffer
+	uri.WriteString(path)
+	if params != nil && len(params) != 0 {
+		uri.WriteString("?")
+		uri.WriteString(params.Encode())
+	}
+
+	return &CompositeRequest{
+		Method:      http.MethodGet,
+		URL:         uri.String(),
+		ReferenceID: referenceID,
+	}
+}
+
+//CompositeGetSObject generates a CompositeRequest in the format of a GetSObject
+//@Params (obj SObject) only needs an empty object to define SObject type
+func (forceApi *ForceApi) CompositeGetSObject(id string, obj SObject, fields []string, referenceID string) *CompositeRequest {
+
+	path := strings.Replace(forceApi.apiSObjects[obj.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
+
+	params := url.Values{}
+	if len(fields) > 0 {
+		params.Add("fields", strings.Join(fields, ","))
+	}
+
+	var uri bytes.Buffer
+	uri.WriteString(path)
+	if params != nil && len(params) != 0 {
+		uri.WriteString("?")
+		uri.WriteString(params.Encode())
+	}
+
+	return &CompositeRequest{
+		Method:      http.MethodGet,
+		URL:         uri.String(),
+		ReferenceID: referenceID,
+	}
+}
+
+//CompositeInsertSObject generates a CompositeRequest in the format of a InsertSObject
+func (forceApi *ForceApi) CompositeInsertSObject(in SObject, referenceID string) *CompositeRequest {
+	uri := forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey]
+
+	return &CompositeRequest{
+		Method:      http.MethodPost,
+		URL:         uri,
+		Body:        in,
+		ReferenceID: referenceID,
+	}
+}
+
+//CompositeUpdateSObject generates a CompositeRequest in the format of a UpdateSObject
+func (forceApi *ForceApi) CompositeUpdateSObject(id string, in SObject, referenceID string) *CompositeRequest {
+	uri := strings.Replace(forceApi.apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
+
+	return &CompositeRequest{
+		Method:      http.MethodPatch,
+		URL:         uri,
+		Body:        in,
+		ReferenceID: referenceID,
+	}
+}
+
+//CompositeDeleteSObject generates a CompositeRequest in the format of a DeleteSObject
+//@Params (obj SObject) only needs an empty object to define SObject type
+func (forceApi *ForceApi) CompositeDeleteSObject(id string, obj SObject, referenceID string) *CompositeRequest {
+	uri := strings.Replace(forceApi.apiSObjects[obj.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
+
+	return &CompositeRequest{
+		Method:      http.MethodDelete,
+		URL:         uri,
+		ReferenceID: referenceID,
+	}
 }
