@@ -76,5 +76,6 @@ func main() {
 Documentation 
 =======
 
+* [Package Reference](http://godoc.org/github.com/SocietyOne/go-force/force)
 * [Package Reference](http://godoc.org/github.com/nimajalali/go-force/force)
 * [Force.com API Reference](http://www.salesforce.com/us/developer/docs/api_rest/)
