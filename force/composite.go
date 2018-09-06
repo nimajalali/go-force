@@ -1,6 +1,7 @@
 package force
 
 import (
+	"encoding/json"
 	"bytes"
 	"net/http"
 	"net/url"
@@ -30,7 +31,7 @@ type CompositeResponses struct {
 
 //CompositeResponse describes the response to a single request
 type CompositeResponse struct {
-	Body           interface{}       `force:"body,omitempty"`
+	Body           json.RawMessage       `force:"body,omitempty"`
 	HTTPHeaders    map[string]string `force:"httpHeaders,omitempty"`
 	HTTPStatusCode int               `force:"httpStatusCode,omitempty"`
 	ReferenceID    string            `force:"referenceId,omitempty"`
