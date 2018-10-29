@@ -186,6 +186,7 @@ func (forceApi *ForceApi) getApiSObjects() error {
 	list := &SObjectApiResponse{}
 	err := forceApi.Get(uri, nil, list)
 	if err != nil {
+		log.Debugf("Error returned from: forceApi.Get in getApiSObjects() func: %v\n", err)
 		return err
 	}
 
@@ -206,6 +207,7 @@ func (forceApi *ForceApi) getApiSObjectDescriptions() error {
 		desc := &SObjectDescription{}
 		err := forceApi.Get(uri, nil, desc)
 		if err != nil {
+			log.Debugf("Error returned from: forceApi.Get in getApiSObjectDescriptions() func: %v\n", err)
 			return err
 		}
 
@@ -234,6 +236,7 @@ func (forceApi *ForceApi) RefreshToken() error {
 
 	err := forceApi.Post("/services/oauth2/token", nil, payload, res)
 	if err != nil {
+		log.Debugf("Error returned from: forceApi.Post in RefreshToken() func: %v\n", err)
 		return err
 	}
 
@@ -244,6 +247,7 @@ func (forceApi *ForceApi) RefreshToken() error {
 //SetAPIResources populates the forceApi.apiResources
 func (forceApi *ForceApi) SetAPIResources(src io.Reader) error {
 	if src == nil {
+		log.Debug("Error: io.Reader is nil, in SetAPIResources()")
 		return errors.New("io.Reader is nil")
 	}
 	dec := json.NewDecoder(src)
@@ -254,12 +258,14 @@ func (forceApi *ForceApi) SetAPIResources(src io.Reader) error {
 func (forceApi *ForceApi) SetAPISObjects(src io.Reader) error {
 
 	if src == nil {
+		log.Debug("Error: io.Reader is nil, in SetAPIResources()")
 		return errors.New("io.Reader is nil")
 	}
 	dec := json.NewDecoder(src)
 	list := &SObjectApiResponse{}
 	err := dec.Decode(list)
 	if err != nil {
+		log.Debugf("Error returned from: dec.Decode in SetAPISObjects() func: %v\n", err)
 		return err
 	}
 

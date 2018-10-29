@@ -29,6 +29,9 @@ func (forceApi *ForceApi) Query(query string, out interface{}) (err error) {
 	}
 
 	err = forceApi.Get(uri, params, out)
+	if err != nil {
+		log.Debugf("Error returned from: forceApi.Get in Query() func: %v\n", err)
+	}
 
 	return
 }
@@ -44,12 +47,18 @@ func (forceApi *ForceApi) QueryAll(query string, out interface{}) (err error) {
 	}
 
 	err = forceApi.Get(uri, params, out)
+	if err != nil {
+		log.Debugf("Error returned from: forceApi.Get in QueryAll() func: %v\n", err)
+	}
 
 	return
 }
 
 func (forceApi *ForceApi) QueryNext(uri string, out interface{}) (err error) {
 	err = forceApi.Get(uri, nil, out)
+	if err != nil {
+		log.Debugf("Error returned from: forceApi.Get in QueryNext() func: %v\n", err)
+	}
 
 	return
 }

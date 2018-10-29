@@ -35,6 +35,7 @@ type forceOauth struct {
 
 func (oauth *forceOauth) Validate() error {
 	if oauth == nil || len(oauth.InstanceUrl) == 0 || len(oauth.AccessToken) == 0 {
+		log.Debugf("Error: Invalid Force Oauth Object, in Validate() func: %+v\n", oauth)
 		return fmt.Errorf("Invalid Force Oauth Object: %#v", oauth)
 	}
 
@@ -72,6 +73,7 @@ func (oauth *forceOauth) Authenticate() error {
 	// Build Request
 	req, err := http.NewRequest("POST", uri, body)
 	if err != nil {
+		log.Debugf("Error returned from: http.NewRequest in Authenticate() func: %v\n", err)
 		return fmt.Errorf("Error creating authentication request: %v", err)
 	}
 
@@ -82,12 +84,14 @@ func (oauth *forceOauth) Authenticate() error {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		log.Debugf("Error returned from: http.NewRequest in Authenticate() func: %v\n", err)
 		return fmt.Errorf("Error sending authentication request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		log.Debugf("Error returned from: ioutil.ReadAll in Authenticate() func: %v\n", err)
 		return fmt.Errorf("Error reading authentication response bytes: %v", err)
 	}
 
@@ -101,6 +105,7 @@ func (oauth *forceOauth) Authenticate() error {
 	}
 
 	if err := json.Unmarshal(respBytes, oauth); err != nil {
+		log.Debugf("Unable to unmarshal authentication response: %v", err)
 		return fmt.Errorf("Unable to unmarshal authentication response: %v", err)
 	}
 

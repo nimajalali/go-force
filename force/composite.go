@@ -1,8 +1,8 @@
 package force
 
 import (
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -31,7 +31,7 @@ type CompositeResponses struct {
 
 //CompositeResponse describes the response to a single request
 type CompositeResponse struct {
-	Body           json.RawMessage       `force:"body,omitempty"`
+	Body           json.RawMessage   `force:"body,omitempty"`
 	HTTPHeaders    map[string]string `force:"httpHeaders,omitempty"`
 	HTTPStatusCode int               `force:"httpStatusCode,omitempty"`
 	ReferenceID    string            `force:"referenceId,omitempty"`
@@ -44,6 +44,9 @@ func (forceApi *ForceApi) PostCompositeRequests(in *CompositeRequests) (resp *Co
 	resp = &CompositeResponses{}
 
 	err = forceApi.Post(uri, nil, in, resp)
+	if err != nil {
+		log.Debugf("Error returned from: forceApi.Post in PostCompositeRequests() func: %v\n", err)
+	}
 
 	return
 }
