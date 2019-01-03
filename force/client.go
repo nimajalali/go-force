@@ -136,6 +136,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	if objectUnmarshalErr != nil {
 		// Not a force.com api error. Just an unmarshalling error.
 		return fmt.Errorf("Unable to unmarshal response to object: %v", objectUnmarshalErr)
+
 	}
 
 	// Sometimes no response is expected. For example delete and update. We still have to make sure an error wasn't returned.

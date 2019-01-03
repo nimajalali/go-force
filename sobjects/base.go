@@ -3,6 +3,7 @@ package sobjects
 import (
 	"reflect"
 	"strings"
+	"time"
 )
 
 var baseFieldNameMap map[string]string
@@ -26,11 +27,11 @@ type BaseSObject struct {
 	Id               string            `force:",omitempty" json:",omitempty"`
 	IsDeleted        bool              `force:",omitempty" json:",omitempty"`
 	Name             string            `force:",omitempty" json:",omitempty"`
-	CreatedDate      string            `force:",omitempty" json:",omitempty"`
+	CreatedDate      time.Time         `force:",omitempty" json:",omitempty"`
 	CreatedById      string            `force:",omitempty" json:",omitempty"`
-	LastModifiedDate string            `force:",omitempty" json:",omitempty"`
+	LastModifiedDate time.Time         `force:",omitempty" json:",omitempty"`
 	LastModifiedById string            `force:",omitempty" json:",omitempty"`
-	SystemModstamp   string            `force:",omitempty" json:",omitempty"`
+	SystemModstamp   time.Time         `force:",omitempty" json:",omitempty"`
 }
 
 type SObjectAttributes struct {
