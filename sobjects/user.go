@@ -17,7 +17,7 @@ type User struct {
 	Username          string `force:",omitempty"`
 }
 
-func (t *User) ApiName() string {
+func (t *User) APIName() string {
 	return "User"
 }
 
