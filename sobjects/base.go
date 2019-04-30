@@ -26,9 +26,9 @@ type BaseSObject struct {
 	Id               string            `force:",omitempty" json:",omitempty"`
 	IsDeleted        bool              `force:",omitempty" json:",omitempty"`
 	Name             string            `force:",omitempty" json:",omitempty"`
-	CreatedDate      string            `force:",omitempty" json:",omitempty"`
+	CreatedDate      *Time             `force:",omitempty" json:",omitempty"`
 	CreatedById      string            `force:",omitempty" json:",omitempty"`
-	LastModifiedDate string            `force:",omitempty" json:",omitempty"`
+	LastModifiedDate *Time             `force:",omitempty" json:",omitempty"`
 	LastModifiedById string            `force:",omitempty" json:",omitempty"`
 	SystemModstamp   string            `force:",omitempty" json:",omitempty"`
 }
