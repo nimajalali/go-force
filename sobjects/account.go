@@ -7,6 +7,7 @@ type Account struct {
 	BillingPostalCode string `force:",omitempty"`
 	BillingState      string `force:",omitempty"`
 	BillingStreet     string `force:",omitempty"`
+	PlatformId        string `force:"League_Platform_ID__c,omitempty"`
 }
 
 func (a Account) ApiName() string {
