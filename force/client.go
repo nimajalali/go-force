@@ -85,6 +85,14 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	req.Header.Set("Accept", responseType)
 	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceApi.oauth.AccessToken))
 
+	// Set this for this request only if requested by caller (if this header is set, OwnerId of created case
+	// will be set to the one we are passing in the request; if header not set, OwnerId is overwritten using SF rules)
+	if forceApi.disableForceAutoAssign {
+		fmt.Println("Disabling force auto assign")
+		req.Header.Set("Sforce-Auto-Assign", "False")
+		forceApi.SetDisableForceAutoAssign(false)
+	}
+
 	// Send
 	forceApi.traceRequest(req)
 	resp, err := http.DefaultClient.Do(req)
