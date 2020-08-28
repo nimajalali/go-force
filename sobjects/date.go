@@ -1,8 +1,8 @@
 package sobjects
 
 import (
-	"github.com/nimajalali/go-force/forcejson"
 	"fmt"
+	"github.com/nimajalali/go-force/forcejson"
 	"time"
 )
 
