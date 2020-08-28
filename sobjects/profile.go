@@ -4,8 +4,8 @@ type Profile struct {
 	BaseSObject
 	Description               string `force:",omitempty"`
 	IsSsoEnabled              bool   `force:",omitempty"`
-	LastReferencedDate        string `force:",omitempty"`
-	LastViewedDate            string `force:",omitempty"`
+	LastReferencedDate        *Time  `force:",omitempty"`
+	LastViewedDate            *Time  `force:",omitempty"`
 	Name                      string `force:",omitempty"`
 	PermissionsPermissionName bool   `force:",omitempty"`
 	UserLicenseId             string `force:",omitempty"`

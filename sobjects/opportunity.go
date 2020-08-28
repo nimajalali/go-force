@@ -4,7 +4,7 @@ type Opportunity struct {
 	BaseSObject
 	AccountId       string  `force:",omitempty"`
 	Amount          float64 `force:",omitempty"`
-	CloseDate       string  `force:",omitempty"`
+	CloseDate       *Time   `force:",omitempty"`
 	CurrencyIsoCode string  `force:",omitempty"`
 	Description     string  `force:",omitempty"`
 	ExpectedRevenue string  `force:",omitempty"`
