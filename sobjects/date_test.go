@@ -36,3 +36,18 @@ func TestDate(t *testing.T) {
 		t.Errorf("wrong output:\nexpected: %+v\n     got: %+v", in, out)
 	}
 }
+
+func TestPrecision(t *testing.T) {
+	a := time.Now().Truncate(time.Second)
+	b := a.Add(time.Millisecond)
+	c := b.Add(time.Second)
+
+	// test that milliseconds don't matter
+	if !AsTime(a).Time().Equal(AsTime(b).Time()) {
+		t.Errorf("sObject dates differ only by ms, SFDC doesn't store milliseconds! a: %s, b: %s", a, b)
+	}
+	// test that seconds still matter
+	if AsTime(a) == AsTime(c) {
+		t.Errorf("dates should differ by seconds but are equal! a: %s, b: %s", a, b)
+	}
+}
