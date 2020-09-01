@@ -12,7 +12,7 @@ type Profile struct {
 	UserType                  string `force:",omitempty"`
 }
 
-func (t *Profile) ApiName() string {
+func (t *Profile) APIName() string {
 	return "Profile"
 }
 
