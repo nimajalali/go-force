@@ -1,7 +1,10 @@
 package force
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 )
 
 const (
@@ -11,6 +14,7 @@ const (
 	sObjectsKey        = "sobjects"
 	sObjectKey         = "sobject"
 	sObjectDescribeKey = "describe"
+	compositeKey       = "composite"
 
 	rowTemplateKey = "rowTemplate"
 	idKey          = "{ID}"
@@ -182,6 +186,7 @@ func (forceApi *ForceApi) getApiSObjects() error {
 	list := &SObjectApiResponse{}
 	err := forceApi.Get(uri, nil, list)
 	if err != nil {
+		log.Debugf("Error returned from: forceApi.Get in getApiSObjects() func: %v\n", err)
 		return err
 	}
 
@@ -202,6 +207,7 @@ func (forceApi *ForceApi) getApiSObjectDescriptions() error {
 		desc := &SObjectDescription{}
 		err := forceApi.Get(uri, nil, desc)
 		if err != nil {
+			log.Debugf("Error returned from: forceApi.Get in getApiSObjectDescriptions() func: %v\n", err)
 			return err
 		}
 
@@ -230,9 +236,44 @@ func (forceApi *ForceApi) RefreshToken() error {
 
 	err := forceApi.Post("/services/oauth2/token", nil, payload, res)
 	if err != nil {
+		log.Debugf("Error returned from: forceApi.Post in RefreshToken() func: %v\n", err)
 		return err
 	}
 
 	forceApi.oauth.AccessToken = res.AccessToken
+	return nil
+}
+
+//SetAPIResources populates the forceApi.apiResources
+func (forceApi *ForceApi) SetAPIResources(src io.Reader) error {
+	if src == nil {
+		log.Debug("Error: io.Reader is nil, in SetAPIResources()")
+		return errors.New("io.Reader is nil")
+	}
+	dec := json.NewDecoder(src)
+	return dec.Decode(&forceApi.apiResources)
+}
+
+//SetAPISObjects populates forceAPi.apiSObjects manually
+func (forceApi *ForceApi) SetAPISObjects(src io.Reader) error {
+
+	if src == nil {
+		log.Debug("Error: io.Reader is nil, in SetAPIResources()")
+		return errors.New("io.Reader is nil")
+	}
+	dec := json.NewDecoder(src)
+	list := &SObjectApiResponse{}
+	err := dec.Decode(list)
+	if err != nil {
+		log.Debugf("Error returned from: dec.Decode in SetAPISObjects() func: %v\n", err)
+		return err
+	}
+
+	forceApi.apiMaxBatchSize = list.MaxBatchSize
+
+	for _, object := range list.SObjects {
+		forceApi.apiSObjects[object.Name] = object
+	}
+
 	return nil
 }

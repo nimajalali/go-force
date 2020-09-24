@@ -49,6 +49,7 @@ func (forceApi *ForceApi) Delete(path string, params url.Values) error {
 
 func (forceApi *ForceApi) request(method, path string, params url.Values, payload, out interface{}) error {
 	if err := forceApi.oauth.Validate(); err != nil {
+		log.Debugf("Error returned from: forceApi.oauth.Validate in request() func: %v\n", err)
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
 
@@ -67,6 +68,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 
 		jsonBytes, err := forcejson.Marshal(payload)
 		if err != nil {
+			log.Debugf("Error returned from: forcejson.Marshal in request() func: %v\n", err)
 			return fmt.Errorf("Error marshaling encoded payload: %v", err)
 		}
 
@@ -76,6 +78,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	// Build Request
 	req, err := http.NewRequest(method, uri.String(), body)
 	if err != nil {
+		log.Debugf("Error returned from: http.NewRequest in request() func: %v\n", err)
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
 
@@ -89,6 +92,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	forceApi.traceRequest(req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		log.Debugf("Error returned from: http.DefaultClient.Do in request() func: %v\n", err)
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}
 	defer resp.Body.Close()
@@ -101,6 +105,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		log.Debugf("Error returned from: ioutil.ReadAll in request() func: %v\n", err)
 		return fmt.Errorf("Error reading response bytes: %v", err)
 	}
 	forceApi.traceResponseBody(respBytes)
@@ -123,6 +128,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 				// Reauthenticate then attempt query again
 				oauthErr := forceApi.oauth.Authenticate()
 				if oauthErr != nil {
+					log.Debugf("Error returned from: forceApi.oauth.Authenticate in request() func: %v\n", err)
 					return oauthErr
 				}
 
@@ -135,6 +141,8 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 
 	if objectUnmarshalErr != nil {
 		// Not a force.com api error. Just an unmarshalling error.
+
+		log.Debugf("Error trying to unmarshal response to object: %v\n", objectUnmarshalErr)
 		return fmt.Errorf("Unable to unmarshal response to object: %v", objectUnmarshalErr)
 	}
 

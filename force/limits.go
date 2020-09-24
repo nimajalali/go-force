@@ -12,6 +12,9 @@ func (forceApi *ForceApi) GetLimits() (limits *Limits, err error) {
 
 	limits = &Limits{}
 	err = forceApi.Get(uri, nil, limits)
+	if err != nil {
+		log.Debugf("Error returned from: forceApi.Get in GetLimits() func: %v\n", err)
+	}
 
 	return
 }

@@ -22,6 +22,7 @@ type SObjectResponse struct {
 
 func (forceAPI *ForceApi) DescribeSObjects() (map[string]*SObjectMetaData, error) {
 	if err := forceAPI.getApiSObjects(); err != nil {
+		log.Debugf("Error returned from: forceAPI.getApiSObjects in DescribeSObjects() func: %v\n", err)
 		return nil, err
 	}
 
@@ -35,6 +36,7 @@ func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription,
 		// Attempt retrieval from api
 		sObjectMetaData, ok := forceApi.apiSObjects[in.ApiName()]
 		if !ok {
+			log.Debugf("Unable to find metadata for object, in DescribeSObject() func: %v", in.ApiName())
 			err = fmt.Errorf("Unable to find metadata for object: %v", in.ApiName())
 			return
 		}
@@ -44,6 +46,7 @@ func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription,
 		resp = &SObjectDescription{}
 		err = forceApi.Get(uri, nil, resp)
 		if err != nil {
+			log.Debugf("Error returned from: forceAPI.Get in DescribeSObject() func: %v\n", err)
 			return
 		}
 
@@ -80,6 +83,9 @@ func (forceApi *ForceApi) GetSObject(id string, fields []string, out SObject) (e
 	}
 
 	err = forceApi.Get(uri, params, out.(interface{}))
+	if err != nil {
+		log.Debugf("Error returned from: forceAPI.Get in GetSObject() func: %v\n", err)
+	}
 
 	return
 }
@@ -89,6 +95,9 @@ func (forceApi *ForceApi) InsertSObject(in SObject) (resp *SObjectResponse, err 
 
 	resp = &SObjectResponse{}
 	err = forceApi.Post(uri, nil, in.(interface{}), resp)
+	if err != nil {
+		log.Debugf("Error returned from: forceAPI.Post in InsertSObject() func: %v\n", err)
+	}
 
 	return
 }
@@ -97,6 +106,9 @@ func (forceApi *ForceApi) UpdateSObject(id string, in SObject) (err error) {
 	uri := strings.Replace(forceApi.apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	err = forceApi.Patch(uri, nil, in.(interface{}), nil)
+	if err != nil {
+		log.Debugf("Error returned from: forceAPI.Patch in UpdateSObject() func: %v\n", err)
+	}
 
 	return
 }
@@ -105,6 +117,9 @@ func (forceApi *ForceApi) DeleteSObject(id string, in SObject) (err error) {
 	uri := strings.Replace(forceApi.apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	err = forceApi.Delete(uri, nil)
+	if err != nil {
+		log.Debugf("Error returned from: forceAPI.Delete in DeleteSObject() func: %v\n", err)
+	}
 
 	return
 }
@@ -119,6 +134,9 @@ func (forceApi *ForceApi) GetSObjectByExternalId(id string, fields []string, out
 	}
 
 	err = forceApi.Get(uri, params, out.(interface{}))
+	if err != nil {
+		log.Debugf("Error returned from: forceAPI.Get in GetSObjectByExternalId() func: %v\n", err)
+	}
 
 	return
 }
@@ -129,6 +147,9 @@ func (forceApi *ForceApi) UpsertSObjectByExternalId(id string, in SObject) (resp
 
 	resp = &SObjectResponse{}
 	err = forceApi.Patch(uri, nil, in.(interface{}), resp)
+	if err != nil {
+		log.Debugf("Error returned from: forceAPI.Patch in UpsertSObjectByExternalId() func: %v\n", err)
+	}
 
 	return
 }
@@ -138,6 +159,9 @@ func (forceApi *ForceApi) DeleteSObjectByExternalId(id string, in SObject) (err 
 		in.ExternalIdApiName(), id)
 
 	err = forceApi.Delete(uri, nil)
+	if err != nil {
+		log.Debugf("Error returned from: forceAPI.Delete in DeleteSObjectByExternalId() func: %v\n", err)
+	}
 
 	return
 }
