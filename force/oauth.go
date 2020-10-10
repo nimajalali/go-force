@@ -11,6 +11,7 @@ import (
 
 const (
 	grantType    = "password"
+	grantTypeRefreshToken = "refresh_token"
 	loginUri     = "https://login.salesforce.com/services/oauth2/token"
 	testLoginUri = "https://test.salesforce.com/services/oauth2/token"
 
@@ -60,6 +61,21 @@ func (oauth *forceOauth) Authenticate() error {
 		"password":      {fmt.Sprintf("%v%v", oauth.password, oauth.securityToken)},
 	}
 
+	return oauth.AuthenticateWithPayload(payload)
+}
+
+func (oauth *forceOauth) AuthenticateWithRefreshToken() error {
+	payload := url.Values{
+		"grant_type":    {grantTypeRefreshToken},
+		"client_id":     {oauth.clientId},
+		"client_secret": {oauth.clientSecret},
+		"refresh_token": {oauth.refreshToken},
+	}
+
+	return oauth.AuthenticateWithPayload(payload)
+}
+
+func (oauth *forceOauth) AuthenticateWithPayload(payload url.Values) error {
 	// Build Uri
 	uri := loginUri
 	if oauth.environment == "sandbox" {
