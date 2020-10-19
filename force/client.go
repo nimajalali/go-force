@@ -7,15 +7,17 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
+	"strings"
+	"encoding/json"
 	"github.com/nimajalali/go-force/forcejson"
 )
 
 const (
-	version      = "1.0.0"
-	userAgent    = "go-force/" + version
-	contentType  = "application/json"
-	responseType = "application/json"
+	version      	   = "1.0.0"
+	userAgent          = "go-force/" + version
+	refreshContentType = "application/x-www-form-urlencoded"
+	contentType        = "application/json"
+	responseType       = "application/json"
 )
 
 // Get issues a GET to the specified path with the given params and put the
@@ -27,6 +29,12 @@ func (forceApi *ForceApi) Get(path string, params url.Values, out interface{}) e
 // Post issues a POST to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
 func (forceApi *ForceApi) Post(path string, params url.Values, payload, out interface{}) error {
+	_, refresh_token := payload.(map[string]string)["refresh_token"]
+
+	if refresh_token {
+		return forceApi.request_access_token(path, params, payload, out)
+	}
+
 	return forceApi.request("POST", path, params, payload, out)
 }
 
@@ -47,10 +55,47 @@ func (forceApi *ForceApi) Delete(path string, params url.Values) error {
 	return forceApi.request("DELETE", path, params, nil, nil)
 }
 
+func (forceApi *ForceApi) request_access_token(path string, params url.Values, payload, out interface{}) error {
+	mPayload, _ := payload.(map[string]string)
+
+	var uri bytes.Buffer
+	uri.WriteString(forceApi.oauth.InstanceUrl)
+	uri.WriteString(path)
+	if params != nil && len(params) != 0 {
+		uri.WriteString("?")
+		uri.WriteString(params.Encode())
+	}
+
+	url_param := `grant_type=refresh_token&`
+	url_param += `client_id=%s&`
+	url_param += `client_secret=%s&`
+	url_param += `refresh_token=%s`
+	url_param = fmt.Sprintf(
+		url_param,
+		mPayload["client_id"],
+		mPayload["client_secret"],
+		mPayload["refresh_token"],
+	)
+
+	req, _ := http.NewRequest("POST", uri.String(), strings.NewReader(url_param))
+
+	req.Header.Add("Content-Type", refreshContentType)
+	req.Header.Add("Cache-Control", "no-cache")
+
+	res, _ := http.DefaultClient.Do(req)
+	defer res.Body.Close()
+
+	json.NewDecoder(res.Body).Decode(out)
+
+	return nil
+}
+
 func (forceApi *ForceApi) request(method, path string, params url.Values, payload, out interface{}) error {
+
 	if err := forceApi.oauth.Validate(); err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
+
 
 	// Build Uri
 	var uri bytes.Buffer
@@ -64,7 +109,6 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	// Build body
 	var body io.Reader
 	if payload != nil {
-
 		jsonBytes, err := forcejson.Marshal(payload)
 		if err != nil {
 			return fmt.Errorf("Error marshaling encoded payload: %v", err)
@@ -81,8 +125,8 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 
 	// Add Headers
 	req.Header.Set("User-Agent", userAgent)
-	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", responseType)
+	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceApi.oauth.AccessToken))
 
 	// Send
@@ -159,3 +203,4 @@ func (forceApi *ForceApi) traceResponseBody(body []byte) {
 		forceApi.trace("Response Body:", string(body), "%s")
 	}
 }
+
