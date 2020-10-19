@@ -20,7 +20,7 @@ const (
 )
 
 type ForceApi struct {
-	Client                 http.Client
+	client                 http.Client
 	apiVersion             string
 	oauth                  *forceOauth
 	apiResources           map[string]string
