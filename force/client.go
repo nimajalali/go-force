@@ -95,7 +95,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 
 	// Send
 	forceApi.traceRequest(req)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := forceApi.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}

@@ -2,6 +2,7 @@ package force
 
 import (
 	"fmt"
+	"net/http"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 )
 
 type ForceApi struct {
+	Client                 http.Client
 	apiVersion             string
 	oauth                  *forceOauth
 	apiResources           map[string]string
@@ -169,6 +171,13 @@ type ChildRelationship struct {
 	CascadeDelete       bool   `json:"cascadeDelete"`
 	RestrictedDelete    bool   `json:"restrictedDelete"`
 	RelationshipName    string `json:"relationshipName"`
+}
+
+func (forceApi *ForceApi) SetClient(client http.Client) {
+	forceApi.client = client
+	if forceApi.oauth != nil {
+		forceApi.oauth.client = client
+	}
 }
 
 func (forceApi *ForceApi) getApiResources() error {

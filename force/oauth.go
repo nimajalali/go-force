@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	grantType    = "password"
+	grantType = "password"
 
 	invalidSessionErrorCode = "INVALID_SESSION_ID"
 )
@@ -21,6 +21,7 @@ type forceOauth struct {
 	Id          string `json:"id"`
 	IssuedAt    string `json:"issued_at"`
 	Signature   string `json:"signature"`
+	client      http.Client
 
 	clientId      string
 	clientSecret  string
@@ -73,7 +74,7 @@ func (oauth *forceOauth) Authenticate() error {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", responseType)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := oauth.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error sending authentication request: %v", err)
 	}
