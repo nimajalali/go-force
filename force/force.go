@@ -4,6 +4,7 @@
 package force
 
 import (
+	"context"
 	"fmt"
 	"os"
 )
@@ -19,7 +20,7 @@ const (
 	testLoginUri      = "https://login.salesforce.com/services/oauth2/token"
 )
 
-func Create(version, clientId, clientSecret, userName, password, securityToken,
+func Create(ctx context.Context, version, clientId, clientSecret, userName, password, securityToken,
 	environment, loginUri string) (*ForceApi, error) {
 	oauth := &forceOauth{
 		clientId:      clientId,
@@ -40,17 +41,17 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 	}
 
 	// Init oauth
-	err := forceApi.oauth.Authenticate()
+	err := forceApi.oauth.Authenticate(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// Init Api Resources
-	err = forceApi.getApiResources()
+	err = forceApi.getApiResources(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = forceApi.getApiSObjects(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +59,7 @@ func Create(version, clientId, clientSecret, userName, password, securityToken,
 	return forceApi, nil
 }
 
-func CreateWithAccessToken(version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
+func CreateWithAccessToken(ctx context.Context, version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
 	oauth := &forceOauth{
 		clientId:    clientId,
 		AccessToken: accessToken,
@@ -80,11 +81,11 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl, loginUri
 	}
 
 	// Init Api Resources
-	err := forceApi.getApiResources()
+	err := forceApi.getApiResources(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = forceApi.getApiSObjects(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func CreateWithAccessToken(version, clientId, accessToken, instanceUrl, loginUri
 	return forceApi, nil
 }
 
-func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
+func CreateWithRefreshToken(ctx context.Context, version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
 	oauth := &forceOauth{
 		clientId:    clientId,
 		AccessToken: accessToken,
@@ -109,7 +110,7 @@ func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl, loginUr
 	}
 
 	// obtain access token
-	if err := forceApi.RefreshToken(); err != nil {
+	if err := forceApi.RefreshToken(ctx); err != nil {
 		return nil, err
 	}
 
@@ -119,11 +120,11 @@ func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl, loginUr
 	}
 
 	// Init Api Resources
-	err := forceApi.getApiResources()
+	err := forceApi.getApiResources(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = forceApi.getApiSObjects()
+	err = forceApi.getApiSObjects(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +134,7 @@ func CreateWithRefreshToken(version, clientId, accessToken, instanceUrl, loginUr
 
 // Used when running tests.
 func createTest() *ForceApi {
-	forceApi, err := Create(testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, testLoginUri)
+	forceApi, err := Create(context.Background(), testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, testLoginUri)
 	if err != nil {
 		fmt.Printf("Unable to create ForceApi for test: %v", err)
 		os.Exit(1)

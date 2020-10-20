@@ -1,6 +1,7 @@
 package force
 
 import (
+	"context"
 	"testing"
 
 	"github.com/EverlongProject/go-force/sobjects"
@@ -26,8 +27,8 @@ func TestCreateWithAccessToken(t *testing.T) {
 		apiVersion:             version,
 		oauth:                  oauth,
 	}
-
-	err := forceApi.oauth.Authenticate()
+	ctx := context.Background()
+	err := forceApi.oauth.Authenticate(ctx)
 	if err != nil {
 		t.Fatalf("Unable to authenticate: %#v", err)
 	}
@@ -36,7 +37,7 @@ func TestCreateWithAccessToken(t *testing.T) {
 	}
 
 	// We shouldn't hit any errors creating a new force instance and manually passing in these oauth details now.
-	newForceApi, err := CreateWithAccessToken(testVersion, testClientId, forceApi.oauth.AccessToken, forceApi.oauth.InstanceUrl, testLoginUri)
+	newForceApi, err := CreateWithAccessToken(ctx, testVersion, testClientId, forceApi.oauth.AccessToken, forceApi.oauth.InstanceUrl, testLoginUri)
 	if err != nil {
 		t.Fatalf("Unable to create new force api instance using pre-defined oauth details: %#v", err)
 	}
@@ -45,7 +46,7 @@ func TestCreateWithAccessToken(t *testing.T) {
 	}
 
 	// We should be able to make a basic query now with the newly created object (i.e. the oauth details should be correctly usable).
-	_, err = newForceApi.DescribeSObject(&sobjects.Account{})
+	_, err = newForceApi.DescribeSObject(ctx, &sobjects.Account{})
 	if err != nil {
 		t.Fatalf("Failed to retrieve description of sobject: %v", err)
 	}

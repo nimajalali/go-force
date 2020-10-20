@@ -2,6 +2,7 @@ package force
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
@@ -20,15 +21,15 @@ type SObjectResponse struct {
 	Success bool      `force:"success,omitempty"`
 }
 
-func (forceAPI *ForceApi) DescribeSObjects() (map[string]*SObjectMetaData, error) {
-	if err := forceAPI.getApiSObjects(); err != nil {
+func (forceAPI *ForceApi) DescribeSObjects(ctx context.Context) (map[string]*SObjectMetaData, error) {
+	if err := forceAPI.getApiSObjects(ctx); err != nil {
 		return nil, err
 	}
 
 	return forceAPI.apiSObjects, nil
 }
 
-func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription, err error) {
+func (forceApi *ForceApi) DescribeSObject(ctx context.Context, in SObject) (resp *SObjectDescription, err error) {
 	// Check cache
 	resp, ok := forceApi.apiSObjectDescriptions[in.ApiName()]
 	if !ok {
@@ -42,7 +43,7 @@ func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription,
 		uri := sObjectMetaData.URLs[sObjectDescribeKey]
 
 		resp = &SObjectDescription{}
-		err = forceApi.Get(uri, nil, resp)
+		err = forceApi.Get(ctx, uri, nil, resp)
 		if err != nil {
 			return
 		}
@@ -71,7 +72,7 @@ func (forceApi *ForceApi) DescribeSObject(in SObject) (resp *SObjectDescription,
 	return
 }
 
-func (forceApi *ForceApi) GetSObject(id string, fields []string, out SObject) (err error) {
+func (forceApi *ForceApi) GetSObject(ctx context.Context, id string, fields []string, out SObject) (err error) {
 	uri := strings.Replace(forceApi.apiSObjects[out.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
 	params := url.Values{}
@@ -79,37 +80,37 @@ func (forceApi *ForceApi) GetSObject(id string, fields []string, out SObject) (e
 		params.Add("fields", strings.Join(fields, ","))
 	}
 
-	err = forceApi.Get(uri, params, out.(interface{}))
+	err = forceApi.Get(ctx, uri, params, out.(interface{}))
 
 	return
 }
 
-func (forceApi *ForceApi) InsertSObject(in SObject) (resp *SObjectResponse, err error) {
+func (forceApi *ForceApi) InsertSObject(ctx context.Context, in SObject) (resp *SObjectResponse, err error) {
 	uri := forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey]
 
 	resp = &SObjectResponse{}
-	err = forceApi.Post(uri, nil, in.(interface{}), resp)
+	err = forceApi.Post(ctx, uri, nil, in.(interface{}), resp)
 
 	return
 }
 
-func (forceApi *ForceApi) UpdateSObject(id string, in SObject) (err error) {
+func (forceApi *ForceApi) UpdateSObject(ctx context.Context, id string, in SObject) (err error) {
 	uri := strings.Replace(forceApi.apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
-	err = forceApi.Patch(uri, nil, in.(interface{}), nil)
+	err = forceApi.Patch(ctx, uri, nil, in.(interface{}), nil)
 
 	return
 }
 
-func (forceApi *ForceApi) DeleteSObject(id string, in SObject) (err error) {
+func (forceApi *ForceApi) DeleteSObject(ctx context.Context, id string, in SObject) (err error) {
 	uri := strings.Replace(forceApi.apiSObjects[in.ApiName()].URLs[rowTemplateKey], idKey, id, 1)
 
-	err = forceApi.Delete(uri, nil)
+	err = forceApi.Delete(ctx, uri, nil)
 
 	return
 }
 
-func (forceApi *ForceApi) GetSObjectByExternalId(id string, fields []string, out SObject) (err error) {
+func (forceApi *ForceApi) GetSObjectByExternalId(ctx context.Context, id string, fields []string, out SObject) (err error) {
 	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[out.ApiName()].URLs[sObjectKey],
 		out.ExternalIdApiName(), id)
 
@@ -118,26 +119,26 @@ func (forceApi *ForceApi) GetSObjectByExternalId(id string, fields []string, out
 		params.Add("fields", strings.Join(fields, ","))
 	}
 
-	err = forceApi.Get(uri, params, out.(interface{}))
+	err = forceApi.Get(ctx, uri, params, out.(interface{}))
 
 	return
 }
 
-func (forceApi *ForceApi) UpsertSObjectByExternalId(id string, in SObject) (resp *SObjectResponse, err error) {
+func (forceApi *ForceApi) UpsertSObjectByExternalId(ctx context.Context, id string, in SObject) (resp *SObjectResponse, err error) {
 	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey],
 		in.ExternalIdApiName(), id)
 
 	resp = &SObjectResponse{}
-	err = forceApi.Patch(uri, nil, in.(interface{}), resp)
+	err = forceApi.Patch(ctx, uri, nil, in.(interface{}), resp)
 
 	return
 }
 
-func (forceApi *ForceApi) DeleteSObjectByExternalId(id string, in SObject) (err error) {
+func (forceApi *ForceApi) DeleteSObjectByExternalId(ctx context.Context, id string, in SObject) (err error) {
 	uri := fmt.Sprintf("%v/%v/%v", forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey],
 		in.ExternalIdApiName(), id)
 
-	err = forceApi.Delete(uri, nil)
+	err = forceApi.Delete(ctx, uri, nil)
 
 	return
 }

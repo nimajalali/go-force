@@ -1,6 +1,7 @@
 package force
 
 import (
+	"context"
 	"math/rand"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ func (t *CustomSObject) ApiName() string {
 
 func TestDescribeSobjects(t *testing.T) {
 	forceAPI := createTest()
-	objects, err := forceAPI.DescribeSObjects()
+	objects, err := forceAPI.DescribeSObjects(context.Background())
 	if err != nil {
 		t.Fatal("Failed to retrieve SObjects", err)
 	}
@@ -36,7 +37,7 @@ func TestDescribeSObject(t *testing.T) {
 	forceApi := createTest()
 	acc := &sobjects.Account{}
 
-	desc, err := forceApi.DescribeSObject(acc)
+	desc, err := forceApi.DescribeSObject(context.Background(), acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Description for Account SObject: %v", err)
 	}
@@ -46,10 +47,11 @@ func TestDescribeSObject(t *testing.T) {
 
 func TestGetSObject(t *testing.T) {
 	forceApi := createTest()
+	ctx := context.Background()
 	// Test Standard Object
 	acc := &sobjects.Account{}
 
-	err := forceApi.GetSObject(AccountId, nil, acc)
+	err := forceApi.GetSObject(ctx, AccountId, nil, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -59,7 +61,7 @@ func TestGetSObject(t *testing.T) {
 	// Test Custom Object
 	customObject := &CustomSObject{}
 
-	err = forceApi.GetSObject(CustomObjectId, nil, customObject)
+	err = forceApi.GetSObject(ctx, CustomObjectId, nil, customObject)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject CustomObject: %v", err)
 	}
@@ -71,7 +73,7 @@ func TestGetSObject(t *testing.T) {
 
 	accFields := &sobjects.Account{}
 
-	err = forceApi.GetSObject(AccountId, fields, accFields)
+	err = forceApi.GetSObject(ctx, AccountId, fields, accFields)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account fields: %v", err)
 	}
@@ -81,6 +83,7 @@ func TestGetSObject(t *testing.T) {
 
 func TestUpdateSObject(t *testing.T) {
 	forceApi := createTest()
+	ctx := context.Background()
 	// Need some random text for updating a field.
 	rand.Seed(time.Now().UTC().UnixNano())
 	someText := randomString(10)
@@ -89,13 +92,13 @@ func TestUpdateSObject(t *testing.T) {
 	acc := &sobjects.Account{}
 	acc.Name = someText
 
-	err := forceApi.UpdateSObject(AccountId, acc)
+	err := forceApi.UpdateSObject(ctx, AccountId, acc)
 	if err != nil {
 		t.Fatalf("Cannot update SObject Account: %v", err)
 	}
 
 	// Read back and verify
-	err = forceApi.GetSObject(AccountId, nil, acc)
+	err = forceApi.GetSObject(ctx, AccountId, nil, acc)
 	if err != nil {
 		t.Fatalf("Cannot retrieve SObject Account: %v", err)
 	}
@@ -109,11 +112,12 @@ func TestUpdateSObject(t *testing.T) {
 
 func TestInsertDeleteSObject(t *testing.T) {
 	forceApi := createTest()
-	objectId := insertSObject(forceApi, t)
-	deleteSObject(forceApi, t, objectId)
+	ctx := context.Background()
+	objectId := insertSObject(ctx, forceApi, t)
+	deleteSObject(ctx, forceApi, t, objectId)
 }
 
-func insertSObject(forceApi *ForceApi, t *testing.T) string {
+func insertSObject(ctx context.Context, forceApi *ForceApi, t *testing.T) string {
 	// Need some random text for name field.
 	rand.Seed(time.Now().UTC().UnixNano())
 	someText := randomString(10)
@@ -122,7 +126,7 @@ func insertSObject(forceApi *ForceApi, t *testing.T) string {
 	acc := &sobjects.Account{}
 	acc.Name = someText
 
-	resp, err := forceApi.InsertSObject(acc)
+	resp, err := forceApi.InsertSObject(ctx, acc)
 	if err != nil {
 		t.Fatalf("Insert SObject Account failed: %v", err)
 	}
@@ -134,17 +138,17 @@ func insertSObject(forceApi *ForceApi, t *testing.T) string {
 	return resp.Id
 }
 
-func deleteSObject(forceApi *ForceApi, t *testing.T, id string) {
+func deleteSObject(ctx context.Context, forceApi *ForceApi, t *testing.T, id string) {
 	// Test Standard Object
 	acc := &sobjects.Account{}
 
-	err := forceApi.DeleteSObject(id, acc)
+	err := forceApi.DeleteSObject(ctx, id, acc)
 	if err != nil {
 		t.Fatalf("Delete SObject Account failed: %v", err)
 	}
 
 	// Read back and verify
-	err = forceApi.GetSObject(id, nil, acc)
+	err = forceApi.GetSObject(ctx, id, nil, acc)
 	if err == nil {
 		t.Fatalf("Delete SObject Account failed, was able to retrieve deleted object: %+v", acc)
 	}

@@ -2,6 +2,7 @@ package force
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,34 +21,34 @@ const (
 
 // Get issues a GET to the specified path with the given params and put the
 // umarshalled (json) result in the third parameter
-func (forceApi *ForceApi) Get(path string, params url.Values, out interface{}) error {
-	return forceApi.request("GET", path, params, nil, out)
+func (forceApi *ForceApi) Get(ctx context.Context, path string, params url.Values, out interface{}) error {
+	return forceApi.request(ctx, "GET", path, params, nil, out)
 }
 
 // Post issues a POST to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
-func (forceApi *ForceApi) Post(path string, params url.Values, payload, out interface{}) error {
-	return forceApi.request("POST", path, params, payload, out)
+func (forceApi *ForceApi) Post(ctx context.Context, path string, params url.Values, payload, out interface{}) error {
+	return forceApi.request(ctx, "POST", path, params, payload, out)
 }
 
 // Put issues a PUT to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
-func (forceApi *ForceApi) Put(path string, params url.Values, payload, out interface{}) error {
-	return forceApi.request("PUT", path, params, payload, out)
+func (forceApi *ForceApi) Put(ctx context.Context, path string, params url.Values, payload, out interface{}) error {
+	return forceApi.request(ctx, "PUT", path, params, payload, out)
 }
 
 // Patch issues a PATCH to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
-func (forceApi *ForceApi) Patch(path string, params url.Values, payload, out interface{}) error {
-	return forceApi.request("PATCH", path, params, payload, out)
+func (forceApi *ForceApi) Patch(ctx context.Context, path string, params url.Values, payload, out interface{}) error {
+	return forceApi.request(ctx, "PATCH", path, params, payload, out)
 }
 
 // Delete issues a DELETE to the specified path with the given payload
-func (forceApi *ForceApi) Delete(path string, params url.Values) error {
-	return forceApi.request("DELETE", path, params, nil, nil)
+func (forceApi *ForceApi) Delete(ctx context.Context, path string, params url.Values) error {
+	return forceApi.request(ctx, "DELETE", path, params, nil, nil)
 }
 
-func (forceApi *ForceApi) request(method, path string, params url.Values, payload, out interface{}) error {
+func (forceApi *ForceApi) request(ctx context.Context, method, path string, params url.Values, payload, out interface{}) error {
 	if err := forceApi.oauth.Validate(); err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
@@ -74,7 +75,7 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 	}
 
 	// Build Request
-	req, err := http.NewRequest(method, uri.String(), body)
+	req, err := http.NewRequestWithContext(ctx, method, uri.String(), body)
 	if err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
@@ -129,12 +130,12 @@ func (forceApi *ForceApi) request(method, path string, params url.Values, payloa
 			// Check if error is oauth token expired
 			if forceApi.oauth.Expired(apiErrors) {
 				// Reauthenticate then attempt query again
-				oauthErr := forceApi.oauth.Authenticate()
+				oauthErr := forceApi.oauth.Authenticate(ctx)
 				if oauthErr != nil {
 					return oauthErr
 				}
 
-				return forceApi.request(method, path, params, payload, out)
+				return forceApi.request(ctx, method, path, params, payload, out)
 			}
 
 			return apiErrors

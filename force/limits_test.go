@@ -1,12 +1,13 @@
 package force
 
 import (
+	"context"
 	"testing"
 )
 
 func TestLimits(t *testing.T) {
 	forceApi := createTest()
-	limits, err := forceApi.GetLimits()
+	limits, err := forceApi.GetLimits(context.Background())
 	if err != nil {
 		// Developer Accounts, which the testbed uses, do not have access to the limits API. So this will always fail.
 		// t.Fatalf("Failed to get Limits: %v", err)

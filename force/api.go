@@ -1,6 +1,7 @@
 package force
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -180,17 +181,17 @@ func (forceApi *ForceApi) SetClient(client http.Client) {
 	}
 }
 
-func (forceApi *ForceApi) getApiResources() error {
+func (forceApi *ForceApi) getApiResources(ctx context.Context) error {
 	uri := fmt.Sprintf(resourcesUri, forceApi.apiVersion)
 
-	return forceApi.Get(uri, nil, &forceApi.apiResources)
+	return forceApi.Get(ctx, uri, nil, &forceApi.apiResources)
 }
 
-func (forceApi *ForceApi) getApiSObjects() error {
+func (forceApi *ForceApi) getApiSObjects(ctx context.Context) error {
 	uri := forceApi.apiResources[sObjectsKey]
 
 	list := &SObjectApiResponse{}
-	err := forceApi.Get(uri, nil, list)
+	err := forceApi.Get(ctx, uri, nil, list)
 	if err != nil {
 		return err
 	}
@@ -205,12 +206,12 @@ func (forceApi *ForceApi) getApiSObjects() error {
 	return nil
 }
 
-func (forceApi *ForceApi) getApiSObjectDescriptions() error {
+func (forceApi *ForceApi) getApiSObjectDescriptions(ctx context.Context) error {
 	for name, metaData := range forceApi.apiSObjects {
 		uri := metaData.URLs[sObjectDescribeKey]
 
 		desc := &SObjectDescription{}
-		err := forceApi.Get(uri, nil, desc)
+		err := forceApi.Get(ctx, uri, nil, desc)
 		if err != nil {
 			return err
 		}
@@ -233,7 +234,7 @@ func (forceApi *ForceApi) SetDisableForceAutoAssign(value bool) {
 	forceApi.disableForceAutoAssign = value
 }
 
-func (forceApi *ForceApi) RefreshToken() error {
+func (forceApi *ForceApi) RefreshToken(ctx context.Context) error {
 	res := &RefreshTokenResponse{}
 	payload := map[string]string{
 		"grant_type":    "refresh_token",
@@ -242,7 +243,7 @@ func (forceApi *ForceApi) RefreshToken() error {
 		"client_secret": forceApi.oauth.clientSecret,
 	}
 
-	err := forceApi.Post("/services/oauth2/token", nil, payload, res)
+	err := forceApi.Post(ctx, "/services/oauth2/token", nil, payload, res)
 	if err != nil {
 		return err
 	}

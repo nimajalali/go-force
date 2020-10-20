@@ -1,6 +1,7 @@
 package force
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -51,7 +52,7 @@ func (oauth *forceOauth) Expired(apiErrors ApiErrors) bool {
 	return false
 }
 
-func (oauth *forceOauth) Authenticate() error {
+func (oauth *forceOauth) Authenticate(ctx context.Context) error {
 	payload := url.Values{
 		"grant_type":    {grantType},
 		"client_id":     {oauth.clientId},
@@ -64,7 +65,7 @@ func (oauth *forceOauth) Authenticate() error {
 	body := strings.NewReader(payload.Encode())
 
 	// Build Request
-	req, err := http.NewRequest("POST", oauth.loginUri, body)
+	req, err := http.NewRequestWithContext(ctx, "POST", oauth.loginUri, body)
 	if err != nil {
 		return fmt.Errorf("Error creating authentication request: %v", err)
 	}
