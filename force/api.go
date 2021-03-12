@@ -23,7 +23,6 @@ const (
 type ForceApi struct {
 	client                 http.Client
 	apiVersion             string
-	oauth                  *forceOauth
 	apiResources           map[string]string
 	apiSObjects            map[string]*SObjectMetaData
 	apiSObjectDescriptions map[string]*SObjectDescription
@@ -174,13 +173,6 @@ type ChildRelationship struct {
 	RelationshipName    string `json:"relationshipName"`
 }
 
-func (forceApi *ForceApi) SetClient(client http.Client) {
-	forceApi.client = client
-	if forceApi.oauth != nil {
-		forceApi.oauth.client = client
-	}
-}
-
 func (forceApi *ForceApi) getApiResources(ctx context.Context) error {
 	uri := fmt.Sprintf(resourcesUri, forceApi.apiVersion)
 
@@ -222,32 +214,6 @@ func (forceApi *ForceApi) getApiSObjectDescriptions(ctx context.Context) error {
 	return nil
 }
 
-func (forceApi *ForceApi) GetInstanceURL() string {
-	return forceApi.oauth.InstanceUrl
-}
-
-func (forceApi *ForceApi) GetAccessToken() string {
-	return forceApi.oauth.AccessToken
-}
-
 func (forceApi *ForceApi) SetDisableForceAutoAssign(value bool) {
 	forceApi.disableForceAutoAssign = value
-}
-
-func (forceApi *ForceApi) RefreshToken(ctx context.Context) error {
-	res := &RefreshTokenResponse{}
-	payload := map[string]string{
-		"grant_type":    "refresh_token",
-		"refresh_token": forceApi.oauth.refreshToken,
-		"client_id":     forceApi.oauth.clientId,
-		"client_secret": forceApi.oauth.clientSecret,
-	}
-
-	err := forceApi.Post(ctx, "/services/oauth2/token", nil, payload, res)
-	if err != nil {
-		return err
-	}
-
-	forceApi.oauth.AccessToken = res.AccessToken
-	return nil
 }

@@ -6,7 +6,7 @@ package force
 import (
 	"context"
 	"fmt"
-	"os"
+	"net/http"
 )
 
 const (
@@ -20,128 +20,29 @@ const (
 	testLoginUri      = "https://login.salesforce.com/services/oauth2/token"
 )
 
-func Create(ctx context.Context, version, clientId, clientSecret, userName, password, securityToken,
-	environment, loginUri string) (*ForceApi, error) {
-	oauth := &forceOauth{
-		clientId:      clientId,
-		clientSecret:  clientSecret,
-		userName:      userName,
-		password:      password,
-		securityToken: securityToken,
-		environment:   environment,
-		loginUri:      loginUri,
-	}
+func Create(ctx context.Context, client http.Client) (*ForceApi, error) {
 
 	forceApi := &ForceApi{
 		apiResources:           make(map[string]string),
 		apiSObjects:            make(map[string]*SObjectMetaData),
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
-		oauth:                  oauth,
-	}
-
-	// Init oauth
-	err := forceApi.oauth.Authenticate(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Init Api Resources
-	err = forceApi.getApiResources(ctx)
-	if err != nil {
-		return nil, err
-	}
-	err = forceApi.getApiSObjects(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return forceApi, nil
-}
-
-func CreateWithAccessToken(ctx context.Context, version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
-	oauth := &forceOauth{
-		clientId:    clientId,
-		AccessToken: accessToken,
-		InstanceUrl: instanceUrl,
-		loginUri:    loginUri,
-	}
-
-	forceApi := &ForceApi{
-		apiResources:           make(map[string]string),
-		apiSObjects:            make(map[string]*SObjectMetaData),
-		apiSObjectDescriptions: make(map[string]*SObjectDescription),
-		apiVersion:             version,
-		oauth:                  oauth,
-	}
-
-	// We need to check for oath correctness here, since we are not generating the token ourselves.
-	if err := forceApi.oauth.Validate(); err != nil {
-		return nil, err
-	}
-
-	// Init Api Resources
-	err := forceApi.getApiResources(ctx)
-	if err != nil {
-		return nil, err
-	}
-	err = forceApi.getApiSObjects(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return forceApi, nil
-}
-
-func CreateWithRefreshToken(ctx context.Context, version, clientId, accessToken, instanceUrl, loginUri string) (*ForceApi, error) {
-	oauth := &forceOauth{
-		clientId:    clientId,
-		AccessToken: accessToken,
-		InstanceUrl: instanceUrl,
-		loginUri:    loginUri,
-	}
-
-	forceApi := &ForceApi{
-		apiResources:           make(map[string]string),
-		apiSObjects:            make(map[string]*SObjectMetaData),
-		apiSObjectDescriptions: make(map[string]*SObjectDescription),
-		apiVersion:             version,
-		oauth:                  oauth,
-	}
-
-	// obtain access token
-	if err := forceApi.RefreshToken(ctx); err != nil {
-		return nil, err
-	}
-
-	// We need to check for oath correctness here, since we are not generating the token ourselves.
-	if err := forceApi.oauth.Validate(); err != nil {
-		return nil, err
-	}
-
-	// Init Api Resources
-	err := forceApi.getApiResources(ctx)
-	if err != nil {
-		return nil, err
-	}
-	err = forceApi.getApiSObjects(ctx)
-	if err != nil {
-		return nil, err
+		client:                 client,
 	}
 
 	return forceApi, nil
 }
 
 // Used when running tests.
-func createTest() *ForceApi {
-	forceApi, err := Create(context.Background(), testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, testLoginUri)
-	if err != nil {
-		fmt.Printf("Unable to create ForceApi for test: %v", err)
-		os.Exit(1)
-	}
+// func createTest() *ForceApi {
+// 	forceApi, err := Create(context.Background(), testVersion, testClientId, testClientSecret, testUserName, testPassword, testSecurityToken, testEnvironment, testLoginUri)
+// 	if err != nil {
+// 		fmt.Printf("Unable to create ForceApi for test: %v", err)
+// 		os.Exit(1)
+// 	}
 
-	return forceApi
-}
+// 	return forceApi
+// }
 
 type ForceApiLogger interface {
 	Printf(format string, v ...interface{})

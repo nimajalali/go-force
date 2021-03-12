@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/EverlongProject/go-force/forcejson"
+	"github.com/pwaterz/go-force/forcejson"
 )
 
 const (
@@ -49,13 +49,9 @@ func (forceApi *ForceApi) Delete(ctx context.Context, path string, params url.Va
 }
 
 func (forceApi *ForceApi) request(ctx context.Context, method, path string, params url.Values, payload, out interface{}) error {
-	if err := forceApi.oauth.Validate(); err != nil {
-		return fmt.Errorf("Error creating %v request: %v", method, err)
-	}
 
 	// Build Uri
 	var uri bytes.Buffer
-	uri.WriteString(forceApi.oauth.InstanceUrl)
 	uri.WriteString(path)
 	if params != nil && len(params) != 0 {
 		uri.WriteString("?")
@@ -84,7 +80,6 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", responseType)
-	req.Header.Set("Authorization", fmt.Sprintf("%v %v", "Bearer", forceApi.oauth.AccessToken))
 
 	// Set this for this request only if requested by caller (if this header is set, OwnerId of created case
 	// will be set to the one we are passing in the request; if header not set, OwnerId is overwritten using SF rules)
@@ -127,17 +122,6 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	apiErrors := ApiErrors{}
 	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
 		if apiErrors.Validate() {
-			// Check if error is oauth token expired
-			if forceApi.oauth.Expired(apiErrors) {
-				// Reauthenticate then attempt query again
-				oauthErr := forceApi.oauth.Authenticate(ctx)
-				if oauthErr != nil {
-					return oauthErr
-				}
-
-				return forceApi.request(ctx, method, path, params, payload, out)
-			}
-
 			return apiErrors
 		}
 	}
