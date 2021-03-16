@@ -3,7 +3,7 @@ package sobjects
 type Lead struct {
 	BaseSObject
 	Company       string `force:",omitempty"`
-	ConvertedDate string `force:",omitempty"`
+	ConvertedDate *Time  `force:",omitempty"`
 	Email         string `force:",omitempty"`
 	FirstName     string `force:",omitempty"`
 	IsConverted   bool   `force:",omitempty"`

@@ -20,7 +20,7 @@ const (
 	testLoginUri      = "https://login.salesforce.com/services/oauth2/token"
 )
 
-func Create(ctx context.Context, client http.Client) (*ForceApi, error) {
+func Create(ctx context.Context, client *http.Client, version, instanceURL string) (*ForceApi, error) {
 
 	forceApi := &ForceApi{
 		apiResources:           make(map[string]string),
@@ -28,6 +28,17 @@ func Create(ctx context.Context, client http.Client) (*ForceApi, error) {
 		apiSObjectDescriptions: make(map[string]*SObjectDescription),
 		apiVersion:             version,
 		client:                 client,
+		InstanceURL:            instanceURL,
+	}
+
+	// Init Api Resources
+	err := forceApi.getApiResources(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = forceApi.getApiSObjects(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	return forceApi, nil

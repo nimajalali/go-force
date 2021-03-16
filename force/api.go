@@ -21,8 +21,9 @@ const (
 )
 
 type ForceApi struct {
-	client                 http.Client
+	client                 *http.Client
 	apiVersion             string
+	InstanceURL            string
 	apiResources           map[string]string
 	apiSObjects            map[string]*SObjectMetaData
 	apiSObjectDescriptions map[string]*SObjectDescription
@@ -30,13 +31,6 @@ type ForceApi struct {
 	logger                 ForceApiLogger
 	logPrefix              string
 	disableForceAutoAssign bool
-}
-
-type RefreshTokenResponse struct {
-	ID          string `json:"id"`
-	IssuedAt    string `json:"issued_at"`
-	Signature   string `json:"signature"`
-	AccessToken string `json:"access_token"`
 }
 
 type SObjectApiResponse struct {

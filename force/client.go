@@ -52,6 +52,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 
 	// Build Uri
 	var uri bytes.Buffer
+	uri.WriteString(forceApi.InstanceURL)
 	uri.WriteString(path)
 	if params != nil && len(params) != 0 {
 		uri.WriteString("?")
