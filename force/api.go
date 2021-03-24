@@ -33,6 +33,10 @@ type ForceApi struct {
 	disableForceAutoAssign bool
 }
 
+func (f *ForceApi) SetClient(client *http.Client) {
+	f.client = client
+}
+
 type SObjectApiResponse struct {
 	Encoding     string             `json:"encoding"`
 	MaxBatchSize int64              `json:"maxBatchSize"`
