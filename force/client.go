@@ -22,34 +22,33 @@ const (
 // Get issues a GET to the specified path with the given params and put the
 // umarshalled (json) result in the third parameter
 func (forceApi *ForceApi) Get(ctx context.Context, path string, params url.Values, out interface{}) error {
-	return forceApi.request(ctx, "GET", path, params, nil, out)
+	return forceApi.request(ctx, "GET", path, params, nil, out, false)
 }
 
 // Post issues a POST to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
 func (forceApi *ForceApi) Post(ctx context.Context, path string, params url.Values, payload, out interface{}) error {
-	return forceApi.request(ctx, "POST", path, params, payload, out)
+	return forceApi.request(ctx, "POST", path, params, payload, out, false)
 }
 
 // Put issues a PUT to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
 func (forceApi *ForceApi) Put(ctx context.Context, path string, params url.Values, payload, out interface{}) error {
-	return forceApi.request(ctx, "PUT", path, params, payload, out)
+	return forceApi.request(ctx, "PUT", path, params, payload, out, false)
 }
 
 // Patch issues a PATCH to the specified path with the given params and payload
 // and put the unmarshalled (json) result in the third parameter
 func (forceApi *ForceApi) Patch(ctx context.Context, path string, params url.Values, payload, out interface{}) error {
-	return forceApi.request(ctx, "PATCH", path, params, payload, out)
+	return forceApi.request(ctx, "PATCH", path, params, payload, out, false)
 }
 
 // Delete issues a DELETE to the specified path with the given payload
 func (forceApi *ForceApi) Delete(ctx context.Context, path string, params url.Values) error {
-	return forceApi.request(ctx, "DELETE", path, params, nil, nil)
+	return forceApi.request(ctx, "DELETE", path, params, nil, nil, false)
 }
 
-func (forceApi *ForceApi) request(ctx context.Context, method, path string, params url.Values, payload, out interface{}) error {
-
+func (forceApi *ForceApi) request(ctx context.Context, method, path string, params url.Values, payload, out interface{}, retry bool) error {
 	// Build Uri
 	var uri bytes.Buffer
 	uri.WriteString(forceApi.InstanceURL)
@@ -94,6 +93,11 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	forceApi.traceRequest(req)
 	resp, err := forceApi.client.Do(req)
 	if err != nil {
+		// Deal with expired salesforce tokens
+		if !retry {
+			forceApi.client = forceApi.jwtConfig.Client(ctx)
+			return forceApi.request(ctx, method, path, params, payload, out, true)
+		}
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}
 	defer resp.Body.Close()

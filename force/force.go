@@ -6,7 +6,8 @@ package force
 import (
 	"context"
 	"fmt"
-	"net/http"
+
+	"golang.org/x/oauth2/jwt"
 )
 
 const (
@@ -20,7 +21,10 @@ const (
 	testLoginUri      = "https://login.salesforce.com/services/oauth2/token"
 )
 
-func Create(ctx context.Context, client *http.Client, version, instanceURL string) (*ForceApi, error) {
+func Create(ctx context.Context, config *jwt.Config, version, instanceURL string) (*ForceApi, error) {
+	// Initiate an http.Client, the following GET request will be
+	// authorized and authenticated on the behalf of user@example.com.
+	client := config.Client(ctx)
 
 	forceApi := &ForceApi{
 		apiResources:           make(map[string]string),

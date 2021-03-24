@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"golang.org/x/oauth2/jwt"
 )
 
 const (
@@ -22,6 +24,7 @@ const (
 
 type ForceApi struct {
 	client                 *http.Client
+	jwtConfig              *jwt.Config
 	apiVersion             string
 	InstanceURL            string
 	apiResources           map[string]string
