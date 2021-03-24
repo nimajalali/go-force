@@ -93,11 +93,6 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	forceApi.traceRequest(req)
 	resp, err := forceApi.client.Do(req)
 	if err != nil {
-		// Deal with expired salesforce tokens
-		if !retry {
-			forceApi.client = forceApi.jwtConfig.Client(ctx)
-			return forceApi.request(ctx, method, path, params, payload, out, true)
-		}
 		return fmt.Errorf("Error sending %v request: %v", method, err)
 	}
 	defer resp.Body.Close()
@@ -127,6 +122,11 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	apiErrors := ApiErrors{}
 	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
 		if apiErrors.Validate() {
+			// Deal with expired salesforce tokens
+			if !retry {
+				forceApi.client = forceApi.jwtConfig.Client(ctx)
+				return forceApi.request(ctx, method, path, params, payload, out, true)
+			}
 			return apiErrors
 		}
 	}
