@@ -33,6 +33,7 @@ func Create(ctx context.Context, config *jwt.Config, version, instanceURL string
 		apiVersion:             version,
 		client:                 client,
 		InstanceURL:            instanceURL,
+		jwtConfig:              config,
 	}
 
 	// Init Api Resources

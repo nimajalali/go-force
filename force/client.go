@@ -123,8 +123,10 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	if marshalErr := forcejson.Unmarshal(respBytes, &apiErrors); marshalErr == nil {
 		if apiErrors.Validate() {
 			// Deal with expired salesforce tokens
-			if !retry {
+			if apiErrors[0].ErrorCode == "INVALID_SESSION_ID" && !retry {
+				forceApi.jwtMutex.Lock()
 				forceApi.client = forceApi.jwtConfig.Client(ctx)
+				forceApi.jwtMutex.Unlock()
 				return forceApi.request(ctx, method, path, params, payload, out, true)
 			}
 			return apiErrors
