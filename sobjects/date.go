@@ -2,22 +2,26 @@ package sobjects
 
 import (
 	"fmt"
-	"github.com/nimajalali/go-force/forcejson"
 	"time"
+
+	"github.com/nimajalali/go-force/forcejson"
 )
 
 const SFTIMEFORMAT1 = "2006-01-02T15:04:05.000-0700"
 const SFTIMEFORMAT2 = "2006-01-02T15:04:05.999Z"
+const SFTIMEFORMAT3 = "2006-01-02"
+
+var sfdcMinDate = time.Date(1700, 1, 1, 0, 0, 0, 0, time.UTC)
 
 // Represents a SFDC Date. Implements marshaling / unmarshaling as a Go Time.
 type Time time.Time
 
 // Convenience Go time.Time constructor.
 func AsTime(t time.Time) *Time {
-	if t.IsZero() {
+	if t.IsZero() || t.Before(sfdcMinDate) {
 		return nil
 	}
-	ret := Time(t.UTC().Truncate(time.Millisecond))
+	ret := Time(t.UTC().Truncate(time.Second)) // SFDC doesn't store ms
 	return &ret
 }
 
@@ -27,10 +31,12 @@ func ParseTime(str string) (*Time, error) {
 		tm, err = time.Parse(SFTIMEFORMAT2, str)
 	}
 	if err != nil {
+		tm, err = time.Parse(SFTIMEFORMAT3, str)
+	}
+	if err != nil {
 		return nil, err
 	}
-	ret := Time(tm.UTC())
-	return &ret, nil
+	return AsTime(tm), nil
 }
 
 // MarshalJSON implements the json.Marshaler interface.
@@ -47,8 +53,11 @@ func (t Time) MarshalJSON() ([]byte, error) {
 }
 
 // Convenience Go time.Time converstion.
-func (t Time) Time() time.Time {
-	return time.Time(t)
+func (t *Time) Time() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return time.Time(*t)
 }
 
 // Convenience Stringer implementation.
