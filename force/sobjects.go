@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // Interface all standard and custom objects must implement. Needed for uri generation.
@@ -18,6 +19,12 @@ type SObjectResponse struct {
 	Id      string    `force:"id,omitempty"`
 	Errors  ApiErrors `force:"error,omitempty"` //TODO: Not sure if ApiErrors is the right object
 	Success bool      `force:"success,omitempty"`
+}
+
+// Response for updated salesforce api
+type SObjectsUpdated struct {
+	Ids               []string `json:"ids"`
+	LatestDateCovered string   `json:"latestDateCovered"`
 }
 
 func (forceAPI *ForceApi) DescribeSObjects() (map[string]*SObjectMetaData, error) {
@@ -139,5 +146,20 @@ func (forceApi *ForceApi) DeleteSObjectByExternalId(id string, in SObject) (err 
 
 	err = forceApi.Delete(uri, nil)
 
+	return
+}
+
+func (forceApi *ForceApi) GetUpdatedSObjects(std time.Time, end time.Time, in SObject) (out *SObjectsUpdated, err error) {
+	//https://developer.salesforce.com/docs/atlas.en-us.238.0.api_rest.meta/api_rest/resources_getupdated.htm
+	uri := fmt.Sprintf("%v/updated/", forceApi.apiSObjects[in.ApiName()].URLs[sObjectKey])
+
+	params := url.Values{
+		"start": {std.Format(time.RFC3339)},
+		"end":   {end.Format(time.RFC3339)},
+	}
+
+	out = &SObjectsUpdated{}
+
+	err = forceApi.Get(uri, params, out)
 	return
 }

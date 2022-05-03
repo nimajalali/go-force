@@ -113,6 +113,37 @@ func TestInsertDeleteSObject(t *testing.T) {
 	deleteSObject(forceApi, t, objectId)
 }
 
+func TestGetUpdatedSObjects(t *testing.T) {
+	forceApi := createTest()
+	objectId := insertSObject(forceApi, t)
+	defer deleteSObject(forceApi, t, objectId)
+
+	acc := &sobjects.Account{}
+	err := forceApi.GetSObject(objectId, nil, acc)
+	if err != nil {
+		t.Fatalf("Cannot retrieve SObject Account: %v", err)
+	}
+
+	t.Logf("SObject Account Retrieved: %+v", acc)
+
+	start := acc.LastModifiedDate.Time().Add(time.Hour * time.Duration(-1))
+	end := acc.LastModifiedDate.Time().Add(time.Hour * time.Duration(1))
+
+	accs, err := forceApi.GetUpdatedSObjects(start, end, acc)
+	if err != nil {
+		t.Fatalf("Cannot retrieve SObject Updated Accounts: %v", err)
+	}
+	t.Logf("SObject Account Retrieved: %+v", accs)
+
+	for _, id := range accs.Ids {
+		if objectId == id {
+			return
+		}
+	}
+
+	t.Fatal("Get updated SObject Account failed.")
+}
+
 func insertSObject(forceApi *ForceApi, t *testing.T) string {
 	// Need some random text for name field.
 	rand.Seed(time.Now().UTC().UnixNano())
