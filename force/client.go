@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/pwaterz/go-force/forcejson"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const (
@@ -91,10 +92,14 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 
 	// Send
 	forceApi.traceRequest(req)
+	span, ctx := tracer.StartSpanFromContext(ctx, "Salesforce API Request")
 	resp, err := forceApi.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Error sending %v request: %v", method, err)
+		returnErr := fmt.Errorf("Error sending %v request: %v", method, err)
+		span.Finish(tracer.WithError(returnErr))
+		return returnErr
 	}
+	span.Finish()
 	defer resp.Body.Close()
 	forceApi.traceResponse(resp)
 
