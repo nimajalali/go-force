@@ -72,7 +72,8 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	}
 
 	// Build Request
-	req, err := http.NewRequestWithContext(ctx, method, uri.String(), body)
+	uriString := uri.String()
+	req, err := http.NewRequestWithContext(ctx, method, uriString, body)
 	if err != nil {
 		return fmt.Errorf("Error creating %v request: %v", method, err)
 	}
@@ -93,6 +94,8 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	// Send
 	forceApi.traceRequest(req)
 	span, ctx := tracer.StartSpanFromContext(ctx, "Salesforce API Request")
+	span.SetTag("url", uriString)
+	span.SetTag("http_method", method)
 	resp, err := forceApi.client.Do(req)
 	if err != nil {
 		returnErr := fmt.Errorf("Error sending %v request: %v", method, err)
