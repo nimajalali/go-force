@@ -93,7 +93,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 
 	// Send
 	forceApi.traceRequest(req)
-	span, ctx := tracer.StartSpanFromContext(ctx, "Salesforce API Request")
+	span, ctx := tracer.StartSpanFromContext(ctx, "Salesforce API Request", tracer.ResourceName(uriString))
 	span.SetTag("url", uriString)
 	span.SetTag("http_method", method)
 	resp, err := forceApi.client.Do(req)
