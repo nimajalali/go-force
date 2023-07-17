@@ -179,14 +179,14 @@ type ChildRelationship struct {
 func (forceApi *ForceApi) getApiResources(ctx context.Context) error {
 	uri := fmt.Sprintf(resourcesUri, forceApi.apiVersion)
 
-	return forceApi.Get(ctx, uri, nil, &forceApi.apiResources)
+	return forceApi.requestNonComposite(ctx, "GET", uri, nil, nil, &forceApi.apiResources, false)
 }
 
 func (forceApi *ForceApi) getApiSObjects(ctx context.Context) error {
 	uri := forceApi.apiResources[sObjectsKey]
 
 	list := &SObjectApiResponse{}
-	err := forceApi.Get(ctx, uri, nil, list)
+	err := forceApi.requestNonComposite(ctx, "GET", uri, nil, nil, list, false)
 	if err != nil {
 		return err
 	}
