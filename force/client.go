@@ -27,11 +27,11 @@ type CompositeRequest struct {
 }
 
 type CompositeSubRequest struct {
-	Method       string      `json:"method"`
-	Url          string      `json:"url"`
-	ReferencedID string      `json:"referenceId"`
-	HttpHeaders  http.Header `json:"httpHeaders,omitempty"`
-	Body         interface{} `json:"body,omitempty"`
+	Method       string          `json:"method"`
+	Url          string          `json:"url"`
+	ReferencedID string          `json:"referenceId"`
+	HttpHeaders  http.Header     `json:"httpHeaders,omitempty"`
+	Body         json.RawMessage `json:"body,omitempty"`
 }
 
 type CompositeResponse struct {
@@ -92,7 +92,11 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	}
 
 	if payload != nil {
-		compSubRequest.Body = payload
+		jsonBytes, err := forcejson.Marshal(payload)
+		if err != nil {
+			return fmt.Errorf("Error marshaling encoded payload: %v", err)
+		}
+		compSubRequest.Body = jsonBytes
 	}
 
 	// Build Request
@@ -104,7 +108,6 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	if err != nil {
 		return fmt.Errorf("Error marshaling encoded payload: %v", err)
 	}
-
 	var sfURI bytes.Buffer
 	sfURI.WriteString(forceApi.InstanceURL)
 	sfURI.WriteString("/services/data/" + forceApi.apiVersion + "/composite")
