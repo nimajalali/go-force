@@ -135,6 +135,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	span.SetTag("url", path)
 	span.SetTag("params", params)
 	span.SetTag("http_method", method)
+	span.SetTag("http_body", compSubRequest.Body)
 	resp, err := forceApi.client.Do(req)
 	if err != nil {
 		returnErr := fmt.Errorf("Error sending %v request: %v", method, err)
@@ -167,6 +168,8 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 					forceApi.jwtMutex.Unlock()
 					return forceApi.request(ctx, method, path, params, payload, out, true)
 				}
+				span.Finish(tracer.WithError(apiErrors))
+
 				return apiErrors
 			}
 		}
@@ -176,6 +179,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	compResponse := &CompositeResponse{}
 	err = json.Unmarshal(respBytes, compResponse)
 	if err != nil {
+		span.Finish(tracer.WithError(err))
 		return fmt.Errorf("Error unmarshaling compsite response: %v", err)
 	}
 	if len(compResponse.Response) == 0 {
@@ -190,7 +194,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 				if apiErrors[0].ErrorCode == "NOT_FOUND" {
 					return nil
 				}
-
+				span.Finish(tracer.WithError(apiErrors))
 				return apiErrors
 			}
 		}
@@ -206,6 +210,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	}
 
 	if objectUnmarshalErr != nil {
+		span.Finish(tracer.WithError(objectUnmarshalErr))
 		// Not a force.com api error. Just an unmarshalling error.
 		return fmt.Errorf("Unable to unmarshal response to object: %v", objectUnmarshalErr)
 	}
