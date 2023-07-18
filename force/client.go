@@ -170,7 +170,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 				}
 				span.Finish(tracer.WithError(apiErrors))
 
-				return apiErrors
+				return errors.New(apiErrors.Error() + ":" + string(jsonBytes))
 			}
 		}
 	}
@@ -195,7 +195,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 					return nil
 				}
 				span.Finish(tracer.WithError(apiErrors))
-				return apiErrors
+				return errors.New(apiErrors.Error() + ":" + string(jsonBytes))
 			}
 		}
 	}
