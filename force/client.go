@@ -155,7 +155,6 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 	if err != nil {
 		return fmt.Errorf("Error reading response bytes: %v", err)
 	}
-
 	if resp.StatusCode >= 300 {
 		// Attempt to parse response as a force.com api error before returning object unmarshal err
 		apiErrors := ApiErrors{}
@@ -170,7 +169,7 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 				}
 				span.Finish(tracer.WithError(apiErrors))
 
-				return errors.New(apiErrors.Error() + ":" + string(jsonBytes))
+				return apiErrors
 			}
 		}
 	}
@@ -191,11 +190,8 @@ func (forceApi *ForceApi) request(ctx context.Context, method, path string, para
 		apiErrors := ApiErrors{}
 		if marshalErr := forcejson.Unmarshal(compResponse.Response[0].Body, &apiErrors); marshalErr == nil {
 			if apiErrors.Validate() {
-				if apiErrors[0].ErrorCode == "NOT_FOUND" {
-					return nil
-				}
 				span.Finish(tracer.WithError(apiErrors))
-				return errors.New(apiErrors.Error() + ":" + string(jsonBytes))
+				return apiErrors
 			}
 		}
 	}
